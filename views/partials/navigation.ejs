@@ -1,0 +1,17 @@
+<nav>
+  <ul>
+    <li><a href="/" class="<%= currentPath === '/' ? 'active' : '' %>">Home</a></li>
+    <li><a href="/inv/type/custom" class="<%= currentPath === '/inv/type/custom' ? 'active' : '' %>">Custom</a></li>
+    <li><a href="/inv/type/Sedan" class="<%= currentPath === '/inv/type/Sedan' ? 'active' : '' %>">Sedan</a></li>
+    <li><a href="/inv/type/SUV" class="<%= currentPath === '/inv/type/SUV' ? 'active' : '' %>">SUV</a></li>
+    <li><a href="/inv/type/Truck" class="<%= currentPath === '/inv/type/Truck' ? 'active' : '' %>">Truck</a></li>
+
+    <% if (!accountData) { %>
+      <li><a href="/account/login" class="<%= currentPath === '/account/login' ? 'active' : '' %>">Login</a></li>
+      <li><a href="/account/register" class="<%= currentPath === '/account/register' ? 'active' : '' %>">Register</a></li>
+    <% } else { %>
+      <li><a href="/account" class="<%= currentPath === '/account' ? 'active' : '' %>">Account</a></li>
+      <li><a href="/account/logout" class="<%= currentPath === '/account/logout' ? 'active' : '' %>">Logout</a></li>
+    <% } %>
+  </ul>
+</nav>
