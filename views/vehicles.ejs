@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><%= classificationName %> Vehicles</title>
+  <style>
+    ul { list-style: none; padding: 0; }
+    li { margin-bottom: 20px; }
+    img { width: 150px; height: auto; display: block; }
+  </style>
+</head>
+<body>
+  <h1><%= classificationName %> Vehicles</h1>
+
+  <% if (vehicles.length === 0) { %>
+    <p><%= message %></p>
+  <% } else { %>
+    <ul>
+      <% vehicles.forEach(vehicle => { %>
+        <li>
+          <img src="<%= vehicle.inv_thumbnail %>" alt="<%= vehicle.inv_make %>">
+          <strong><%= vehicle.inv_make %> <%= vehicle.inv_model %></strong> - <%= vehicle.inv_year %>
+          <p><%= vehicle.inv_description %></p>
+          <p>Price: $<%= vehicle.inv_price %></p>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</body>
+</html>

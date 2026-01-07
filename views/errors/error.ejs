@@ -5,8 +5,7 @@ const safeAccountData = typeof accountData !== 'undefined' ? accountData : null;
 const safeCurrentPath = typeof currentPath !== 'undefined' ? currentPath : '';
 %>
 
-<%- include('../partials/header', { loggedin: safeLoggedin, accountData: safeAccountData }) %>
-<%- include('../partials/navigation', { nav: nav, currentPath: safeCurrentPath, accountData: safeAccountData }) %>
+
 
 <main>
   <section class="error-page">
@@ -15,4 +14,4 @@ const safeCurrentPath = typeof currentPath !== 'undefined' ? currentPath : '';
   </section>
 </main>
 
-<%- include('../partials/footer') %>
+

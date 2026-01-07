@@ -67,6 +67,12 @@ VALUES
 
 --Create a relationship between classification and inventory Tables
 
+SELECT * FROM classification;
+
+-- If '2' is missing, add it (replace 'SUV' with your actual category name)
+INSERT INTO classification (classification_id, classification_name) 
+VALUES (2, 'SUV');
+
 ALTER TABLE IF EXISTS Public.inventory
 ADD CONSTRAINT fk_classification FOREIGN KEY(classification_id)
 REFERENCES Public.classification(classification_id)MATCH SIMPLE 

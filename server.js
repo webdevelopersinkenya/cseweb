@@ -21,6 +21,9 @@ const baseController = require("./controllers/baseController");
 const utilities = require("./utilities/");
 const pool = require("./database/");
 
+// ===== New import for vehicles route =====
+const vehiclesRoute = require("./routes/vehicles"); // <-- create this file next
+
 /*******************************
  * Session configuration
  *******************************/
@@ -46,7 +49,6 @@ app.use(
     },
   })
 );
-
 
 /*******************************
  * Middleware
@@ -93,6 +95,10 @@ app.use(express.json());
 app.use("/", static);
 app.use("/inv", inventoryRoute);
 app.use("/account", accountRoute);
+
+// ===== New Vehicles Route =====
+app.use("/", vehiclesRoute); 
+// This handles /vehicles/:classificationName
 
 /*******************************
  * Error Handling

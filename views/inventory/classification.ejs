@@ -1,0 +1,18 @@
+<h2>Vehicles: <%= classificationName %></h2>
+
+<% if (message) { %>
+  <p><%= message %></p>
+<% } %>
+
+<div class="vehicle-list">
+  <% vehicles.forEach(vehicle => { %>
+    <div class="vehicle-card">
+      <img src="<%= vehicle.inv_image %>" alt="<%= vehicle.inv_model %>" />
+      <h3><%= vehicle.inv_make %> <%= vehicle.inv_model %> (<%= vehicle.inv_year %>)</h3>
+      <p><%= vehicle.inv_description %></p>
+      <p>Price: $<%= vehicle.inv_price %></p>
+      <p>Miles: <%= vehicle.inv_miles %></p>
+      <p>Color: <%= vehicle.inv_color %></p>
+    </div>
+  <% }) %>
+</div>

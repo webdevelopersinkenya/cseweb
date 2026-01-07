@@ -4,7 +4,6 @@ body {
     margin: 0;
     padding: 0;
     background-image: url('../images/site/checkerboard.jpg');
-    background-size: 30px 30px;
     background-repeat: repeat;
     background-color: #f0f0f0;
 
@@ -88,8 +87,8 @@ body.login-page {
 
 /* Header Styles */
 header {
-    background-color: #333333;
-    color: #ffffff;
+    background-color: white;
+    color: black;
     padding: 15px 20px;
     display: flex;
     justify-content: space-between;
