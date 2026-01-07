@@ -56,6 +56,8 @@ app.use(
 app.use(cookieParser()); // Must be before using req.cookies
 app.use(flash());
 app.use(utilities.checkJWTToken); // Uses req.cookies.jwt
+require('dotenv').config();
+
 
 /*******************************
  * Local variables middleware
