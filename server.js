@@ -29,22 +29,10 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const connectPgSimple = require("connect-pg-simple");
 const flash = require("connect-flash");
-
-const app = express();
-
-
-/*******************************
- * Required modules
- *******************************/
-const express = require("express");
-const expressLayouts = require("express-ejs-layouts");
-const cookieParser = require("cookie-parser");
-const session = require("express-session");
-const connectPgSimple = require("connect-pg-simple");
-const flash = require("connect-flash");
 const path = require("path");
 
 const app = express();
+
 
 /*******************************
  * Routes and utilities
