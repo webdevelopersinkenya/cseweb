@@ -1,4 +1,26 @@
 /*******************************
+ * Load environment variables first
+ *******************************/
+const path = require("path");
+const dotenvResult = require("dotenv").config({
+  path: path.resolve(__dirname, ".env"), // Ensures .env is loaded relative to server.js
+});
+
+if (dotenvResult.error) {
+  console.warn(
+    "⚠️  Warning: .env file not found or failed to load. Check that it exists in the project root."
+  );
+}
+
+if (!process.env.SESSION_SECRET) {
+  throw new Error(
+    "SESSION_SECRET is not defined in the .env file. Please add it!"
+  );
+}
+
+console.log("✅ SESSION_SECRET loaded successfully.");
+
+/*******************************
  * Required modules
  *******************************/
 const express = require("express");
@@ -7,8 +29,21 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const connectPgSimple = require("connect-pg-simple");
 const flash = require("connect-flash");
-const env = require("dotenv").config();
+
+const app = express();
+
+
+/*******************************
+ * Required modules
+ *******************************/
+const express = require("express");
+const expressLayouts = require("express-ejs-layouts");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
+const connectPgSimple = require("connect-pg-simple");
+const flash = require("connect-flash");
 const path = require("path");
+
 const app = express();
 
 /*******************************
