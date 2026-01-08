@@ -13,8 +13,19 @@ router.get("/login", utilities.handleErrors(accountController.buildLogin));
 /* **************************************
  * GET registration view
  * URL: /account/register
+ * Always sends empty errors array if none exist
  ***************************************/
-router.get("/register", utilities.handleErrors(accountController.buildRegister));
+router.get("/register", utilities.handleErrors(async (req, res, next) => {
+    // Call your existing controller to get base data (if any)
+    const data = await accountController.buildRegister(req, res);
+    
+    // Render the page safely with defaults
+    res.render("account/register", {
+        errors: data?.errors || [],      // default empty array
+        username: data?.username || "",  // default empty string
+        email: data?.email || ""         // default empty string
+    });
+}));
 
 /* **************************************
  * Process Registration
@@ -53,10 +64,8 @@ router.get(
 );
 
 /* **************************************
- * GET Account Update View (Task 5)
+ * GET Account Update View
  * URL: /account/update
- * Purpose: Displays form for updating account profile information and changing password
- * Protected by checkLogin
  ***************************************/
 router.get(
   "/update",
@@ -67,37 +76,31 @@ router.get(
 /* **************************************
  * Process Account Profile Update (Task 5)
  * URL: /account/update (POST)
- * Purpose: Handles submission of account profile update form
- * Protected by checkLogin, includes validation middleware
  ***************************************/
 router.post(
   "/update",
   utilities.checkLogin,
-  regValidate.updateAccountRules(), // Validation rules for profile update
-  regValidate.checkUpdateData, // Check function for profile update
+  regValidate.updateAccountRules(),
+  regValidate.checkUpdateData,
   utilities.handleErrors(accountController.updateAccount)
 );
 
 /* **************************************
  * Process Account Password Update (Task 5)
  * URL: /account/updatePassword (POST)
- * Purpose: Handles submission of password change form
- * Protected by checkLogin, includes validation middleware
  ***************************************/
 router.post(
   "/updatePassword",
   utilities.checkLogin,
-  regValidate.changePasswordRules(), // Validation rules for password change
-  regValidate.checkPasswordData, // Check function for password change
+  regValidate.changePasswordRules(),
+  regValidate.checkPasswordData,
   utilities.handleErrors(accountController.updatePassword)
 );
 
 /* **************************************
  * Process Logout (Task 6)
  * URL: /account/logout
- * Purpose: Clears JWT cookie and redirects to home
  ***************************************/
 router.get("/logout", utilities.handleErrors(accountController.accountLogout));
-
 
 module.exports = router;

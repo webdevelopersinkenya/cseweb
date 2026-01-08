@@ -26,11 +26,13 @@ async function getInventoryByClassificationName(classification_name) {
   try {
     const data = await pool.query(
       `SELECT * FROM inventory
-       LEFT JOIN classification ON inventory.classification_id = classification.classification_id
-       WHERE classification.classification_name = $1`,
+       JOIN classification
+         ON inventory.classification_id = classification.classification_id
+       WHERE LOWER(classification.classification_name) = LOWER($1)`,
       [classification_name]
     );
-    return data.rows;
+
+    return data; // ✅ RETURN FULL QUERY OBJECT
   } catch (error) {
     console.error("getInventoryByClassificationName error: " + error);
     throw new Error("Failed to get inventory items by classification name.");

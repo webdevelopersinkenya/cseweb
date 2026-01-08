@@ -3,11 +3,16 @@
 <head>
   <%- include('../partials/head') %>
 </head>
-<body class="<%= (title === 'Login' || title === 'Register') ? 'auth-page' : '' %>">
+<body class="<%= (typeof title !== 'undefined' && (title === 'Login' || title === 'Register')) ? 'auth-page' : '' %>">
   <div id="wrapper">
-    
+
+    <% 
+      // Determine if this is an auth page
+      const isAuthPage = (typeof title !== 'undefined') && (title === 'Login' || title === 'Register'); 
+    %>
+
     <!-- Only show header and navigation if not login or register page -->
-    <% if (title !== 'Login' && title !== 'Register') { %>
+    <% if (!isAuthPage) { %>
       <%- include('../partials/header') %>
       <%- include('../partials/navigation') %>
     <% } %>
@@ -17,10 +22,10 @@
     </main>
 
     <!-- Only show footer if not login or register page -->
-    <% if (title !== 'Login' && title !== 'Register') { %>
+    <% if (!isAuthPage) { %>
       <%- include('../partials/footer') %>
     <% } %>
-    
+
   </div>
 </body>
 </html>

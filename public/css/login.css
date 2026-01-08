@@ -1,0 +1,124 @@
+/* -------------------------------
+   Overall Body Styling
+---------------------------------*/
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* -------------------------------
+   Form Container
+---------------------------------*/
+.auth-container {
+    background-color: #ffffff;
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    max-width: 90%;
+    box-sizing: border-box;
+}
+
+/* Form Header */
+.auth-container h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333333;
+}
+
+/* Form Fields */
+.auth-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-container label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555555;
+}
+
+.auth-container input[type="email"],
+.auth-container input[type="password"] {
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.auth-container input:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+/* Submit Button */
+.auth-container button[type="submit"] {
+    padding: 12px;
+    background-color: black;
+    border: none;
+    color: #ffffff;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.auth-container button[type="submit"]:hover {
+    background-color:gray;
+}
+
+/* Error Messages */
+.auth-container .errors {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 15px;
+    color: #ff4d4f;
+    font-size: 14px;
+}
+
+/* Links */
+.auth-container .auth-link {
+    text-align: center;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.auth-container .auth-link a {
+    color: black;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.auth-container .auth-link a:hover {
+    color: gray;
+}
+
+/* -------------------------------
+   Responsive Media Queries
+---------------------------------*/
+@media (max-width: 500px) {
+    .auth-container {
+        padding: 20px;
+        width: 95%;
+    }
+
+    .auth-container input[type="email"],
+    .auth-container input[type="password"],
+    .auth-container button[type="submit"] {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .auth-container h1 {
+        font-size: 24px;
+    }
+}

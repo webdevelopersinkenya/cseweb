@@ -5,25 +5,34 @@ const { body, validationResult } = require('express-validator'); // For server-s
 /* ***************************
  * Build inventory by classification view (Existing function)
  ***************************** */
-async function buildByClassificationName(req, res) {
-  const classification_name = req.params.classificationName;
-  const inventoryData = await inventoryModel.getInventoryByClassificationName(classification_name);
+async function buildByClassificationName(req, res, next) {
+  try {
+    const classification_name = req.params.classificationName;
 
-  if (inventoryData.length === 0) {
-    const error = new Error(`No vehicles found for ${classification_name} classification.`);
-    error.status = 404;
-    throw error;
+    const data = await inventoryModel.getInventoryByClassificationName(classification_name);
+    const vehicles = data.rows; // ✅ FIX #1
+
+    if (!vehicles || vehicles.length === 0) {
+      return res.status(404).render("inventory/classification", {
+        title: `${classification_name} Vehicles`,
+        nav: await utilities.getNav(),
+        grid: "<p class='notice'>No vehicles found for this classification.</p>"
+      });
+    }
+
+    const gridHtml = await utilities.buildClassificationGrid(vehicles); // ✅ FIX #2
+    const nav = await utilities.getNav();
+
+    res.render("inventory/classification", {
+      title: `${classification_name} Vehicles`,
+      nav,
+      grid: gridHtml,
+    });
+  } catch (error) {
+    next(error);
   }
-
-  const gridHtml = await utilities.buildClassificationGrid(inventoryData);
-  let nav = await utilities.getNav();
-
-  res.render("inventory/classification", {
-    title: `${classification_name} Vehicles`,
-    nav,
-    grid: gridHtml,
-  });
 }
+
 
 /* ***************************
  * Build inventory item detail view (Existing function)

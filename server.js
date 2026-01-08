@@ -56,8 +56,6 @@ app.use(
 app.use(cookieParser()); // Must be before using req.cookies
 app.use(flash());
 app.use(utilities.checkJWTToken); // Uses req.cookies.jwt
-require('dotenv').config();
-
 
 /*******************************
  * Local variables middleware
@@ -96,9 +94,12 @@ app.use(express.json());
  *******************************/
 app.use("/", static);
 app.use("/inv", inventoryRoute);
+
+// ===== Account routes =====
+// accountRoute should now include the GET & POST /register
 app.use("/account", accountRoute);
 
-// ===== New Vehicles Route =====
+// ===== Vehicles Route =====
 app.use("/", vehiclesRoute); 
 // This handles /vehicles/:classificationName
 
