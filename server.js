@@ -1,7 +1,7 @@
 /*******************************
  * Load environment variables first
  *******************************/
-const path = require("path");
+const path = require("path"); // ✅ only here
 const dotenvResult = require("dotenv").config({
   path: path.resolve(__dirname, ".env"), // Ensures .env is loaded relative to server.js
 });
@@ -31,6 +31,7 @@ const connectPgSimple = require("connect-pg-simple");
 const flash = require("connect-flash");
 
 const app = express();
+
 
 
 /*******************************
