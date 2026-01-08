@@ -29,7 +29,6 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const connectPgSimple = require("connect-pg-simple");
 const flash = require("connect-flash");
-const path = require("path");
 
 const app = express();
 
