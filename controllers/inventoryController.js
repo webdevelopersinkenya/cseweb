@@ -1,186 +1,171 @@
 const inventoryModel = require("../models/inventory-model");
-const utilities = require("../utilities/"); // Assuming utilities/index.js
-const { body, validationResult } = require('express-validator'); // For server-side validation
+const utilities = require("../utilities/"); // utilities/index.js
+const { body, validationResult } = require('express-validator');
 
 /* ***************************
- * Build inventory by classification view (Existing function)
+ * Build inventory by classification
  ***************************** */
 async function buildByClassificationName(req, res, next) {
   try {
     const classification_name = req.params.classificationName;
-
     const data = await inventoryModel.getInventoryByClassificationName(classification_name);
-    const vehicles = data.rows; // ✅ FIX #1
+    const vehicles = data.rows || []; // always array
+    const nav = await utilities.getNav();
 
-    if (!vehicles || vehicles.length === 0) {
-      return res.status(404).render("inventory/classification", {
+    // If no vehicles, show notice
+    if (vehicles.length === 0) {
+      return res.render("inventory/classification", {
         title: `${classification_name} Vehicles`,
-        nav: await utilities.getNav(),
+        classificationName: classification_name,
+        nav,
+        vehicles,
         grid: "<p class='notice'>No vehicles found for this classification.</p>"
       });
     }
 
-    const gridHtml = await utilities.buildClassificationGrid(vehicles); // ✅ FIX #2
-    const nav = await utilities.getNav();
+    // Build the vehicle grid
+    const gridHtml = await utilities.buildClassificationGrid(vehicles);
 
     res.render("inventory/classification", {
       title: `${classification_name} Vehicles`,
+      classificationName: classification_name,
       nav,
-      grid: gridHtml,
+      vehicles,
+      grid: gridHtml
     });
+
   } catch (error) {
     next(error);
   }
 }
 
-
 /* ***************************
- * Build inventory item detail view (Existing function)
+ * Build inventory item detail view
  ***************************** */
-async function buildByInvId(req, res) {
-  const inv_id = parseInt(req.params.invId);
+async function buildByInvId(req, res, next) {
+  try {
+    const inv_id = parseInt(req.params.invId);
+    if (isNaN(inv_id)) throw Object.assign(new Error("Invalid inventory ID"), { status: 400 });
 
-  if (isNaN(inv_id)) {
-    throw new Error("Invalid inventory ID provided.");
+    const vehicleData = await inventoryModel.getInventoryById(inv_id);
+    if (!vehicleData) throw Object.assign(new Error("Vehicle Not Found"), { status: 404 });
+
+    const nav = await utilities.getNav();
+
+    res.render("inventory/detail", {
+      title: `${vehicleData.inv_make} ${vehicleData.inv_model}`,
+      nav,
+      vehicleData
+    });
+
+  } catch (error) {
+    next(error);
   }
-
-  const vehicleData = await inventoryModel.getInventoryById(inv_id);
-
-  if (!vehicleData) {
-    const error = new Error("Vehicle Not Found");
-    error.status = 404;
-    throw error;
-  }
-
-  const detailHtml = await utilities.buildVehicleDetail(vehicleData);
-  let nav = await utilities.getNav();
-
-  res.render("inventory/detail", {
-    title: `${vehicleData.inv_make} ${vehicleData.inv_model}`,
-    nav,
-    body: detailHtml,
-  });
 }
 
 /* ***************************
- * Build Management View (Task 1)
- * Purpose: Renders the inventory management dashboard.
- * Route: /inv/
+ * Management View
  ***************************** */
 async function buildManagement(req, res) {
-  let nav = await utilities.getNav();
-  // buildClassificationList is needed for the 'add new inventory' form
-  // It's passed here so it can be dynamically shown based on user choice
-  const classificationList = await utilities.buildClassificationList(); // Build for the new inventory form dropdown
+  const nav = await utilities.getNav();
+  const classificationList = await utilities.buildClassificationList();
+
   res.render("inventory/management", {
     title: "Vehicle Management",
     nav,
-    errors: null, // Initialize errors to null for fresh load
-    classificationList, // Pass the classification dropdown HTML
+    errors: null,
+    classificationList
   });
 }
 
 /* ***************************
- * Build Add Classification View (Task 2)
- * Purpose: Renders the form to add a new vehicle classification.
- * Route: /inv/add-classification
+ * Add Classification View
  ***************************** */
 async function buildAddClassification(req, res) {
-  let nav = await utilities.getNav();
+  const nav = await utilities.getNav();
+
   res.render("inventory/add-classification", {
     title: "Add New Classification",
     nav,
-    errors: null, // For validation errors
-    classification_name: '', // Sticky input for new classification name
+    errors: null,
+    classification_name: ''
   });
 }
 
 /* ***************************
- * Process Add Classification (Task 2)
- * Purpose: Handles the submission of the add new classification form.
- * Route: POST /inv/add-classification
+ * Process Add Classification
  ***************************** */
 async function registerClassification(req, res) {
-  let nav = await utilities.getNav();
+  const nav = await utilities.getNav();
   const { classification_name } = req.body;
-
-  // Server-side validation
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
     req.flash("notice", "Please fix the errors below.");
     return res.status(400).render("inventory/add-classification", {
       title: "Add New Classification",
       nav,
-      errors: errors.array(), // Pass errors to view
-      classification_name: classification_name, // Sticky input
+      errors: errors.array(),
+      classification_name
     });
   }
 
-  // Add to database
   try {
-    const classificationResult = await inventoryModel.addClassification(classification_name);
-    if (classificationResult) {
-      req.flash("notice", `Classification "${classification_name}" successfully added.`);
-      // Rebuild nav to include new classification immediately
-      let newNav = await utilities.getNav();
-      res.locals.nav = newNav; // Update res.locals.nav for immediate display on next render
-      res.redirect("/inv/"); // Redirect to management view on success
+    const result = await inventoryModel.addClassification(classification_name);
+    if (result) {
+      req.flash("notice", `Classification "${classification_name}" added successfully.`);
+      return res.redirect("/inv/");
     } else {
-      req.flash("notice", "Sorry, adding the classification failed. Please try again.");
-      res.status(500).render("inventory/add-classification", {
+      req.flash("notice", "Failed to add classification.");
+      return res.status(500).render("inventory/add-classification", {
         title: "Add New Classification",
         nav,
-        errors: null, // No specific validation errors, but a general failure
-        classification_name: classification_name,
+        errors: null,
+        classification_name
       });
     }
   } catch (error) {
-    req.flash("notice", error.message); // Flash the specific error (e.g., "already exists")
-    res.status(500).render("inventory/add-classification", {
+    req.flash("notice", error.message);
+    return res.status(500).render("inventory/add-classification", {
       title: "Add New Classification",
       nav,
-      errors: [{ msg: error.message }], // Pass it as an array for consistent rendering
-      classification_name: classification_name,
+      errors: [{ msg: error.message }],
+      classification_name
     });
   }
 }
 
 /* ***************************
- * Build Add Inventory View (Task 3)
- * Purpose: Renders the form to add a new vehicle to inventory.
- * Route: /inv/add-inventory
+ * Add Inventory View
  ***************************** */
 async function buildAddInventory(req, res) {
-  let nav = await utilities.getNav();
-  const classificationList = await utilities.buildClassificationList(); // Get dynamic dropdown
+  const nav = await utilities.getNav();
+  const classificationList = await utilities.buildClassificationList();
+
   res.render("inventory/add-inventory", {
     title: "Add New Inventory Item",
     nav,
-    classificationList, // Pass dropdown HTML
+    classificationList,
     errors: null,
-    // Provide empty values for sticky inputs on first load
     inv_make: '', inv_model: '', inv_year: '', inv_description: '',
-    inv_image: '/images/vehicles/no-image.png', // Default 'no image' path
-    inv_thumbnail: '/images/vehicles/no-image-tn.png', // Default 'no image' thumbnail path
-    inv_price: '', inv_miles: '', inv_color: '', classification_id: '',
+    inv_image: 'no-image.png',        // just filename
+    inv_thumbnail: 'no-image-tn.png', // just filename
+    inv_price: '', inv_miles: '', inv_color: '', classification_id: ''
   });
 }
 
 /* ***************************
- * Process Add Inventory (Task 3)
- * Purpose: Handles the submission of the add new inventory form.
- * Route: POST /inv/add-inventory
+ * Process Add Inventory
  ***************************** */
 async function registerInventory(req, res) {
-  let nav = await utilities.getNav();
-  const classificationList = await utilities.buildClassificationList(req.body.classification_id); // Build list with sticky selected option
+  const nav = await utilities.getNav();
+  const classificationList = await utilities.buildClassificationList(req.body.classification_id);
 
   const {
     inv_make, inv_model, inv_year, inv_description, inv_image,
     inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
   } = req.body;
 
-  // Server-side validation
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     req.flash("notice", "Please fix the errors below.");
@@ -189,54 +174,50 @@ async function registerInventory(req, res) {
       nav,
       classificationList,
       errors: errors.array(),
-      inv_make, inv_model, inv_year, inv_description, inv_image,
-      inv_thumbnail, inv_price, inv_miles, inv_color, classification_id, // Sticky inputs
+      inv_make, inv_model, inv_year, inv_description,
+      inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
     });
   }
 
-  // Add to database
   try {
-    const inventoryResult = await inventoryModel.addInventory(
+    const result = await inventoryModel.addInventory(
       inv_make, inv_model, inv_year, inv_description, inv_image,
       inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
     );
 
-    if (inventoryResult) {
-      req.flash("notice", `Vehicle "${inv_make} ${inv_model}" successfully added.`);
-      // Rebuild nav bar if you add new classification
-      // If you are only adding inventory, nav bar doesn't change unless new classification is added
-      res.redirect("/inv/"); // Redirect to management view on success
+    if (result) {
+      req.flash("notice", `Vehicle "${inv_make} ${inv_model}" added successfully.`);
+      return res.redirect("/inv/");
     } else {
-      req.flash("notice", "Sorry, adding the vehicle failed. Please try again.");
-      res.status(500).render("inventory/add-inventory", {
+      req.flash("notice", "Failed to add vehicle.");
+      return res.status(500).render("inventory/add-inventory", {
         title: "Add New Inventory Item",
         nav,
         classificationList,
         errors: null,
-        inv_make, inv_model, inv_year, inv_description, inv_image,
-        inv_thumbnail, inv_price, inv_miles, inv_color, classification_id,
+        inv_make, inv_model, inv_year, inv_description,
+        inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
       });
     }
   } catch (error) {
-    req.flash("notice", "An unexpected error occurred: " + error.message);
-    res.status(500).render("inventory/add-inventory", {
+    req.flash("notice", "Unexpected error: " + error.message);
+    return res.status(500).render("inventory/add-inventory", {
       title: "Add New Inventory Item",
       nav,
       classificationList,
       errors: null,
-      inv_make, inv_model, inv_year, inv_description, inv_image,
-      inv_thumbnail, inv_price, inv_miles, inv_color, classification_id,
+      inv_make, inv_model, inv_year, inv_description,
+      inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
     });
   }
 }
 
-
 module.exports = {
   buildByClassificationName,
   buildByInvId,
-  buildManagement,        // Export new function for Task 1
-  buildAddClassification, // Export new function for Task 2 (GET)
-  registerClassification, // Export new function for Task 2 (POST)
-  buildAddInventory,      // Export new function for Task 3 (GET)
-  registerInventory,      // Export new function for Task 3 (POST)
+  buildManagement,
+  buildAddClassification,
+  registerClassification,
+  buildAddInventory,
+  registerInventory
 };

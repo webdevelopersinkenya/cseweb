@@ -11,6 +11,13 @@ body {
     margin: 0;
     padding: 0;
 }
+.logo-text {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 2rem;
+  font-weight: bold;
+  color: black; /* your brand color */
+  text-transform: uppercase;
+}
 
 /* Container for the form */
 form {
@@ -120,4 +127,58 @@ p a:hover {
     h1 {
         font-size: 24px;
     }
+}
+.vehicle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.vehicle-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* pushes content apart */
+  background-color: #fff;
+  height: 350px; /* reduced height */
+}
+
+.vehicle-card img {
+  width: 100%;
+  height: 150px; /* reduce height */
+  object-fit: cover;
+  border-bottom: 1px solid #ddd;
+}
+
+.vehicle-info {
+  padding: 10px 15px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* makes the info take remaining space */
+}
+
+.vehicle-info h3 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.vehicle-info p {
+  margin: 5px 0;
+  flex-grow: 1; /* pushes the link down */
+}
+
+.vehicle-info a {
+  display: inline-block;
+  margin-top: auto; /* pushes link to bottom of card */
+  color: #007BFF;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.vehicle-info a:hover {
+  text-decoration: underline;
 }

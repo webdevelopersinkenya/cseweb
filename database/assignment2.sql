@@ -1,5 +1,5 @@
 
---inspect the structure of  account table:
+--inspects the structure of  account table:
 SELECT column_name, data_type
 FROM information_schema.columns
 WHERE table_name = 'account';

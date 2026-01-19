@@ -1,0 +1,61 @@
+<main class="vehicle-detail-page">
+  <div class="vehicle-detail-wrapper">
+
+    <!-- Left: Main Image + Thumbnails -->
+    <div class="vehicle-images">
+      <div class="main-image">
+        <img 
+          src="<%= vehicleData.inv_image || '/images/vehicles/placeholder.png' %>" 
+          alt="<%= vehicleData.inv_make %> <%= vehicleData.inv_model %>"
+        >
+      </div>
+
+      <!-- Thumbnails -->
+      <div class="thumbnails">
+        <% if (vehicleData.inv_thumbnails && vehicleData.inv_thumbnails.length) { %>
+          <% vehicleData.inv_thumbnails.forEach(function(thumbnail) { %>
+            <img 
+              src="<%= thumbnail || '/images/vehicles/placeholder.png' %>" 
+              alt="Thumbnail for <%= vehicleData.inv_make %> <%= vehicleData.inv_model %>"
+            >
+          <% }); %>
+        <% } else { %>
+          <img 
+            src="<%= vehicleData.inv_thumbnail || '/images/vehicles/placeholder.png' %>" 
+            alt="Thumbnail"
+          >
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Right: Vehicle Info -->
+    <div class="vehicle-info">
+      <h1><%= vehicleData.inv_year %> <%= vehicleData.inv_make %> <%= vehicleData.inv_model %></h1>
+      <p class="price">
+        <strong>No-Haggle Price:</strong> 
+        <%= new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits:0 }).format(vehicleData.inv_price) %>
+      </p>
+      <p class="mileage"><strong>Mileage:</strong> <%= new Intl.NumberFormat('en-US').format(vehicleData.inv_miles) %> miles</p>
+      <hr>
+      <ul class="vehicle-specs">
+        <li><strong>MPG:</strong> <%= vehicleData.inv_mpg || 'N/A' %></li>
+        <li><strong>Ext. Color:</strong> <%= vehicleData.inv_color %></li>
+        <li><strong>Int. Color:</strong> <%= vehicleData.inv_int_color || 'N/A' %></li>
+        <li><strong>Fuel Type:</strong> <%= vehicleData.inv_fuel || 'Gasoline' %></li>
+        <li><strong>Drivetrain:</strong> <%= vehicleData.inv_drivetrain || 'Front Wheel Drive' %></li>
+        <li><strong>Transmission:</strong> <%= vehicleData.inv_transmission || 'Automatic' %></li>
+        <li><strong>VIN:</strong> <%= vehicleData.inv_vin || 'Unknown' %></li>
+      </ul>
+
+      <div class="vehicle-buttons">
+        <button class="btn btn-primary">Start My Purchase</button>
+        <button class="btn btn-secondary">Contact Us</button>
+        <button class="btn btn-info">Schedule Test Drive</button>
+        <button class="btn btn-light">Apply for Financing</button>
+      </div>
+
+      <p class="description"><strong>Description:</strong> <%= vehicleData.inv_description %></p>
+    </div>
+
+  </div>
+</main>
