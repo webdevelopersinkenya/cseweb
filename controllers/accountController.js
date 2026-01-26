@@ -17,8 +17,10 @@ async function buildLogin(req, res) {
     nav,
     errors: null,
     account_email: "",
+    notice: req.flash("notice")  // add this if not using global res.locals
   });
 }
+
 
 /* ****************************************
  * Deliver registration view
@@ -48,52 +50,60 @@ async function registerAccount(req, res) {
   } = req.body;
 
   try {
+    // Check if email already exists
+    const emailExists = await accountModel.checkExistingEmail(account_email);
+    if (emailExists) {
+      req.flash(
+        "notice",
+        "Email already exists. Please login or use a different email."
+      );
+      return res.status(409).render("account/register", {
+        title: "Register",
+        nav,
+        errors: [],
+        account_firstname,
+        account_lastname,
+        account_email,
+      });
+    }
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(account_password, 10);
 
-    const regResult = await accountModel.registerAccount(
+    // Insert account
+    await accountModel.registerAccount(
       account_firstname,
       account_lastname,
       account_email,
       hashedPassword
     );
 
-    if (regResult) {
-      req.flash(
-        "notice",
-        `Congratulations, you're registered ${account_firstname}. Please log in.`
-      );
-      res.status(201).render("account/login", {
-        title: "Login",
-        nav,
-        errors: null,
-        account_email: "",
-      });
-    } else {
-      req.flash("notice", "Sorry, the registration failed.");
-      res.status(501).render("account/register", {
-        title: "Register",
-        nav,
-        errors: null,
-        account_firstname,
-        account_lastname,
-        account_email,
-      });
-    }
+    //  Flash success message
+    req.flash(
+      "notice",
+      ` Congratulations ${account_firstname}, you are now registered. Please log in.`
+    );
+
+    // Redirect (not render)
+    return res.redirect("/account/login");
+
   } catch (error) {
+    console.error("Registration error:", error.message);
     req.flash(
       "notice",
       "Sorry, there was an error processing the registration."
     );
-    res.status(500).render("account/register", {
+    return res.status(500).render("account/register", {
       title: "Register",
       nav,
-      errors: null,
+      errors: [],
       account_firstname,
       account_lastname,
       account_email,
     });
   }
 }
+
 
 /* ****************************************
  * Process login request

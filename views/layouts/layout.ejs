@@ -8,20 +8,18 @@
 
     <% 
       // Determine if this is an auth page
-      const isAuthPage = (typeof title !== 'undefined') && (title === 'Login' || title === 'Register'); 
+      const isAuthPage = (title === 'Login' || title === 'Register'); 
     %>
 
-    <!-- Only show header and navigation if not login or register page -->
-    <% if (!isAuthPage) { %>
-      <%- include('../partials/header') %>
-      <%- include('../partials/navigation') %>
-    <% } %>
+    <!-- Always show header and navigation -->
+    <%- include('../partials/header') %>
+    <%- include('../partials/navigation') %>
 
     <main>
       <%- body %>
     </main>
 
-    <!-- Only show footer if not login or register page -->
+    <!-- Only show footer if not auth page -->
     <% if (!isAuthPage) { %>
       <%- include('../partials/footer') %>
     <% } %>

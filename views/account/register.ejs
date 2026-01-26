@@ -1,33 +1,52 @@
-<body>
-  <div class="auth-container">
-    <h1>Register</h1>
+<h1>Register</h1>
 
-    <% if (errors && errors.length > 0) { %>
-        <ul class="errors">
-            <% errors.forEach(function(error) { %>
-                <li><%= error.msg %></li>
-            <% }); %>
-        </ul>
-    <% } %>
-
-    <form action="/account/register" method="POST">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" value="<%= username || '' %>" required>
-
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" value="<%= email || '' %>" required>
-
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-
-        <label for="password2">Confirm Password:</label>
-        <input type="password" id="password2" name="password2" required>
-
-        <button type="submit">Register</button>
-    </form>
-
-    <p class="auth-link">
-        Already have an account? <a href="/account/login">Login here</a>
-    </p>
+<!-- Flash notice messages -->
+<% if (notice && notice.length) { %>
+  <div class="flash-message">
+    <%= notice %>
   </div>
-</body>
+<% } %>
+
+<!-- Validation errors -->
+<% if (errors && errors.length > 0) { %>
+  <ul class="errors">
+    <% errors.forEach(function(error) { %>
+      <li><%= error.msg %></li>
+    <% }); %>
+  </ul>
+<% } %>
+
+<div class="auth-container">
+  <form action="/account/register" method="POST" id="registerForm">
+    
+    <label for="account_firstname">First Name:</label>
+    <input type="text" id="account_firstname" name="account_firstname" required
+           value="<%= account_firstname || '' %>">
+
+    <label for="account_lastname">Last Name:</label>
+    <input type="text" id="account_lastname" name="account_lastname" required
+           value="<%= account_lastname || '' %>">
+
+    <label for="account_email">Email:</label>
+    <input type="email" id="account_email" name="account_email" required
+           value="<%= account_email || '' %>">
+
+    <label for="account_password">Password:</label>
+    <input type="password" name="account_password" id="account_password" required pattern="^[A-Za-z]{6,}$"
+  title="Password must be at least 6 letters (A–Z or a–z only).">
+
+  <p class="password-info">
+  Password must be at least 6 letters (A–Z or a–z only).
+</p>
+
+
+    <label for="account_password2">Confirm Password:</label>
+    <input type="password" id="account_password2" name="account_password2" required>
+
+    <button type="submit" class="submitBtn">Register</button>
+  </form>
+
+  <p class="signup-link">
+    Already have an account? <a href="/account/login">Login here</a>
+  </p>
+</div>

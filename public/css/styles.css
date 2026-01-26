@@ -1146,3 +1146,111 @@ body {
   line-height: 1.6;
   color: #444;
 }
+/* Container for the login form */
+.login-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 30px;
+  background-color: #1e3a8a; /* Blue background */
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  color: #fff; /* White text for labels and headings */
+  font-family: Arial, sans-serif;
+}
+
+/* Headings inside the login form */
+.login-container h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Labels */
+.login-container label {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+/* Input fields */
+.login-container input[type="email"],
+.login-container input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff; /* White input fields */
+  color: #000; /* Text inside input */
+  font-size: 16px;
+}
+
+/* Password info text */
+.password-info {
+  font-size: 12px;
+  margin-top: 5px;
+  color: #e0e0e0; /* Light gray text for info */
+}
+
+/* Show/Hide password button */
+#pswdBtn {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: black; /* Slightly lighter blue */
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#pswdBtn:hover {
+  background-color: #1d4ed8;
+}
+
+/* Submit button */
+.submitBtn {
+  width: auto; /* shrink to fit content */
+  padding: 6px 12px; /* smaller padding than pswdBtn */
+  background-color: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px; /* smaller font */
+  cursor: pointer;
+  display: inline-block; /* prevents stretching full width */
+  margin-top: 10px; /* smaller top margin */
+}
+
+.submitBtn:hover {
+  background-color: white;
+}
+
+
+.submitBtn:hover {
+  background-color:gray;
+}
+
+/* Sign-up link */
+.signup-link {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.signup-link a {
+  color: #facc15; /* Yellow link */
+  text-decoration: none;
+}
+
+.signup-link a:hover {
+  text-decoration: underline;
+}
+
+/* Flash message styling */
+.flash-message {
+  background-color: #f87171; /* Red for errors */
+  color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  text-align: center;
+}

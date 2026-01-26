@@ -1,24 +1,12 @@
 /*******************************
  * Load environment variables first
  *******************************/
-const path = require("path"); // ✅ only here
-const dotenvResult = require("dotenv").config({
-  path: path.resolve(__dirname, ".env"), // Ensures .env is loaded relative to server.js
-});
-
-if (dotenvResult.error) {
-  console.warn(
-    "⚠️  Warning: .env file not found or failed to load. Check that it exists in the project root."
-  );
-}
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
 if (!process.env.SESSION_SECRET) {
-  throw new Error(
-    "SESSION_SECRET is not defined in the .env file. Please add it!"
-  );
+  throw new Error("SESSION_SECRET is not defined in the .env file");
 }
-
-console.log("✅ SESSION_SECRET loaded successfully.");
 
 /*******************************
  * Required modules
@@ -31,44 +19,29 @@ const connectPgSimple = require("connect-pg-simple");
 const flash = require("connect-flash");
 
 const app = express();
-
-
-
-/*******************************
- * Routes and utilities
- *******************************/
-const static = require("./routes/static");
-const inventoryRoute = require("./routes/inventoryRoute");
-const accountRoute = require("./routes/accountRoute"); 
-const baseController = require("./controllers/baseController");
-const utilities = require("./utilities/");
 const pool = require("./database/");
+const utilities = require("./utilities/");
 
-// ===== New import for vehicles route =====
-const vehiclesRoute = require("./routes/vehicles"); // <-- create this file next
+// Routes
+const staticRoutes = require("./routes/static");
+const inventoryRoute = require("./routes/inventoryRoute");
+const accountRoute = require("./routes/accountRoute");
 
 /*******************************
  * Session configuration
  *******************************/
 const PgSession = connectPgSimple(session);
 
-if (!process.env.SESSION_SECRET) {
-  throw new Error("SESSION_SECRET is not defined in the .env file");
-}
-
 app.use(
   session({
-    store: new PgSession({
-      pool: pool,
-      tableName: "session",
-    }),
+    store: new PgSession({ pool, tableName: "session" }),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
       maxAge: 1000 * 60 * 60, // 1 hour
       httpOnly: true,
-      secure: false, // set true ONLY when using HTTPS
+      secure: process.env.NODE_ENV !== "development",
     },
   })
 );
@@ -76,26 +49,30 @@ app.use(
 /*******************************
  * Middleware
  *******************************/
-app.use(cookieParser()); // Must be before using req.cookies
-app.use(flash());
-app.use(utilities.checkJWTToken); // Uses req.cookies.jwt
+app.use(cookieParser());
+app.use(flash()); // must come AFTER session
 
-/*******************************
- * Local variables middleware
- *******************************/
+// Populate res.locals for all views
 app.use(async (req, res, next) => {
   try {
-    res.locals.nav = await utilities.getNav();
-    res.locals.currentPath = req.path;
+    res.locals.nav = await utilities.getNav(); // dynamic navigation
+    res.locals.currentPath = req.path;        // used by navigation.ejs
     res.locals.accountData = req.session?.accountData || null;
     res.locals.loggedin = !!res.locals.accountData;
-    res.locals.messages = require("express-messages")(req, res);
-    res.locals.notice = req.flash("notice");
+    res.locals.notice = req.flash("notice");  // flash messages
     next();
   } catch (error) {
     next(error);
   }
 });
+
+// JWT check middleware (optional)
+app.use(utilities.checkJWTToken);
+
+// Built-in middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static("public"));
 
 /*******************************
  * View Engine and Layouts
@@ -103,28 +80,14 @@ app.use(async (req, res, next) => {
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(expressLayouts);
-app.set("layout", "./layouts/layout"); // Relative to /views
-
-/*******************************
- * Built-in Middleware
- *******************************/
-app.use(express.static("public"));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.set("layout", "./layouts/layout");
 
 /*******************************
  * Routes
  *******************************/
-app.use("/", static);
+app.use("/", staticRoutes);
 app.use("/inv", inventoryRoute);
-
-// ===== Account routes =====
-// accountRoute should now include the GET & POST /register
 app.use("/account", accountRoute);
-
-// ===== Vehicles Route =====
-app.use("/", vehiclesRoute); 
-// This handles /vehicles/:classificationName
 
 /*******************************
  * Error Handling

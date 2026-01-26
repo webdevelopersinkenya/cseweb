@@ -8,24 +8,28 @@ const regValidate = require("../middleware/validation");
  * GET login view
  * URL: /account/login
  ***************************************/
-router.get("/login", utilities.handleErrors(accountController.buildLogin));
+router.get("/login", utilities.handleErrors(async (req, res) => {
+  const nav = await utilities.getNav();
+  res.render("account/login", {
+    title: "Login",
+    nav,
+    errors: [],
+    account_email: "",           // <-- match your input name
+    notice: req.flash("notice")  // <-- pass flash messages
+  });
+}));
+
 
 /* **************************************
  * GET registration view
  * URL: /account/register
  * Always sends empty errors array if none exist
  ***************************************/
-router.get("/register", utilities.handleErrors(async (req, res, next) => {
-    // Call your existing controller to get base data (if any)
-    const data = await accountController.buildRegister(req, res);
-    
-    // Render the page safely with defaults
-    res.render("account/register", {
-        errors: data?.errors || [],      // default empty array
-        username: data?.username || "",  // default empty string
-        email: data?.email || ""         // default empty string
-    });
-}));
+
+router.get("/register", utilities.handleErrors(accountController.buildRegister));
+
+
+
 
 /* **************************************
  * Process Registration

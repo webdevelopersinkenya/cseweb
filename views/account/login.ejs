@@ -1,37 +1,55 @@
-<section class="auth-container">
-  <h1>Login</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="/css/login.css"> 
+</head>
+<body>
 
-  <% if (errors && errors.length > 0) { %>
+<h1>Login</h1>
 
-    <ul class="errors">
-      <% errors.forEach(error => { %>
-        <li><%= error.msg %></li>
-      <% }) %>
-    </ul>
-  <% } %>
+<!-- Flash notice messages -->
+<% if (notice && notice.length > 0) { %>
+  <div class="flash-message">
+    <% notice.forEach(msg => { %>
+      <p><%= msg %></p>
+    <% }) %>
+  </div>
+<% } %>
 
-  <form method="post" action="/account/login">
-    <label for="email">Email</label>
-    <input
-      type="email"
-      id="email"
-      name="email"
-      required
-    >
 
-    <label for="password">Password</label>
-    <input
-      type="password"
-      id="password"
-      name="password"
-      required
-    >
 
-    <button type="submit">Login</button>
+<div class="login-container">
+  <form action="/account/login" method="POST" id="loginForm">
+    <fieldset>
+      <label for="account_email">Email Address:</label>
+      <input type="email" name="account_email" id="account_email" required
+             value="<%= account_email || '' %>">
+
+      <label for="account_password">Password:</label>
+      <input type="password" name="account_password" id="account_password" required
+             pattern="^[A-Za-z]{6,}$"
+             title="Password must be at least 6 letters (A–Z or a–z only).">
+
+      <p class="password-info">
+        Password must be at least 6 letters (A–Z or a–z only).
+      </p>
+
+      <button type="button" id="pswdBtn">Show Password</button>
+
+      <input type="submit" value="Login" class="submitBtn">
+    </fieldset>
   </form>
 
-  <p class="auth-link">
-    Don’t have an account?
-    <a href="/account/register">Register</a>
+  <p class="signup-link">
+    No account? <a href="/account/register">Sign-up</a>
   </p>
-</section>
+</div>
+
+<!-- Link external JS file -->
+<script src="/js/login.js"></script>
+
+</body>
+</html>

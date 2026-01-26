@@ -9,31 +9,24 @@ const validate = {}; // Create a validation object
  * ********************************* */
 validate.loginRules = () => {
   return [
-    // email is required and must be a valid email
+    // Email validation
     body("account_email")
       .trim()
       .isEmail()
-      .normalizeEmail() // sanitize email
+      .normalizeEmail()
       .withMessage("A valid email is required.")
       .custom(async (account_email) => {
-        // Check if email exists in database
         const account = await accountModel.getAccountByEmail(account_email);
         if (!account) {
           throw new Error("Email address not found.");
         }
       }),
 
-    // password is required and must meet requirements
+    // Password: required only (no complexity checks here)
     body("account_password")
       .trim()
-      .isLength({ min: 10 })
-      .withMessage("Password must be at least 10 characters.")
-      .matches(
-        /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{10,}$/
-      )
-      .withMessage(
-        "Password must contain at least 1 uppercase, 1 number, and 1 special character."
-      ),
+      .notEmpty()
+      .withMessage("Password is required."),
   ];
 };
 
@@ -181,17 +174,12 @@ validate.checkUpdateData = async (req, res, next) => {
  * ********************************* */
 validate.changePasswordRules = () => {
     return [
-        // Password is required and must meet requirements
         body("account_password")
-            .trim()
-            .isLength({ min: 10 })
-            .withMessage("New password must be at least 10 characters.")
-            .matches(
-                /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{10,}$/
-            )
-            .withMessage(
-                "New password must contain at least 1 uppercase, 1 number, and 1 special character."
-            ),
+          .trim()
+          .isLength({ min: 6 })
+          .withMessage("Password must be at least 6 letters.")
+          .matches(/^[A-Za-z]+$/)
+          .withMessage("Password can only contain letters (A–Z or a–z)")
     ];
 };
 

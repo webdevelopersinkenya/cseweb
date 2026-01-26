@@ -1,0 +1,8 @@
+<h1><%= title %></h1>
+<p><%= message %></p>
+
+<form action="/inv/add-classification" method="post">
+  <label for="classification_name">Classification Name</label>
+  <input type="text" id="classification_name" name="classification_name" required pattern="[A-Za-z]+" title="No spaces or special characters">
+  <button type="submit">Add Classification</button>
+</form>
