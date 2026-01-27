@@ -1,5 +1,5 @@
 const inventoryModel = require("../models/inventory-model");
-const utilities = require("../utilities/"); // utilities/index.js
+const utilities = require("../utilities/"); // only declare once
 const { body, validationResult } = require('express-validator');
 
 /* ***************************
@@ -9,10 +9,9 @@ async function buildByClassificationName(req, res, next) {
   try {
     const classification_name = req.params.classificationName;
     const data = await inventoryModel.getInventoryByClassificationName(classification_name);
-    const vehicles = data.rows || []; // always array
+    const vehicles = data.rows || [];
     const nav = await utilities.getNav();
 
-    // If no vehicles, show notice
     if (vehicles.length === 0) {
       return res.render("inventory/classification", {
         title: `${classification_name} Vehicles`,
@@ -23,7 +22,6 @@ async function buildByClassificationName(req, res, next) {
       });
     }
 
-    // Build the vehicle grid
     const gridHtml = await utilities.buildClassificationGrid(vehicles);
 
     res.render("inventory/classification", {
@@ -33,7 +31,6 @@ async function buildByClassificationName(req, res, next) {
       vehicles,
       grid: gridHtml
     });
-
   } catch (error) {
     next(error);
   }
@@ -57,25 +54,27 @@ async function buildByInvId(req, res, next) {
       nav,
       vehicleData
     });
-
   } catch (error) {
     next(error);
   }
 }
 
 /* ***************************
- * Management View
+ * Management View (Vehicle Management Page)
  ***************************** */
-async function buildManagement(req, res) {
-  const nav = await utilities.getNav();
-  const classificationList = await utilities.buildClassificationList();
+async function buildManagement(req, res, next) {
+  try {
+    const nav = await utilities.getNav();
+    const classificationList = await utilities.buildClassificationList();
 
-  res.render("inventory/management", {
-    title: "Vehicle Management",
-    nav,
-    errors: null,
-    classificationList
-  });
+    res.render("inventory/inventory-overview", { // new ejs file
+      title: "Vehicle Management",
+      nav,
+      classificationList
+    });
+  } catch (error) {
+    next(error);
+  }
 }
 
 /* ***************************
@@ -148,8 +147,8 @@ async function buildAddInventory(req, res) {
     classificationList,
     errors: null,
     inv_make: '', inv_model: '', inv_year: '', inv_description: '',
-    inv_image: 'no-image.png',        // just filename
-    inv_thumbnail: 'no-image-tn.png', // just filename
+    inv_image: 'no-image.png',
+    inv_thumbnail: 'no-image-tn.png',
     inv_price: '', inv_miles: '', inv_color: '', classification_id: ''
   });
 }

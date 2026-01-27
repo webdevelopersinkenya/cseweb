@@ -1,86 +1,81 @@
 const express = require("express");
 const router = new express.Router();
 const inventoryController = require("../controllers/inventoryController");
-const utilities = require("../utilities/");
 const { body } = require('express-validator');
 
 /* **************************************
- * Route to build inventory by classification view (Existing)
+ * Route to build inventory by classification view
  * URL: /inv/type/:classificationName
- * Publicly accessible - NO checkAccountType
- ***************************************/
-router.get("/type/:classificationName", utilities.handleErrors(inventoryController.buildByClassificationName));
+ * Publicly accessible
+ **************************************/
+router.get(
+  "/type/:classificationName",
+  inventoryController.buildByClassificationName
+);
 
 /* **************************************
- * Route to build single inventory item detail view (Existing)
+ * Route to build single inventory item detail view
  * URL: /inv/detail/:invId
- * Publicly accessible - NO checkAccountType
- ***************************************/
-router.get("/detail/:invId", utilities.handleErrors(inventoryController.buildByInvId));
+ * Publicly accessible
+ **************************************/
+router.get(
+  "/detail/:invId",
+  inventoryController.buildByInvId
+);
 
 /* **************************************
- * Route to build Management View (Task 2 - Restricted)
+ * Route to build Management View (Task 2)
  * URL: /inv/
- * Protected by checkLogin AND checkAccountType
- ***************************************/
+ * Accessible without login for testing
+ **************************************/
 router.get(
   "/",
-  utilities.checkLogin,      // User must be logged in
-  utilities.checkAccountType,  // User must be Admin or Employee
-  utilities.handleErrors(inventoryController.buildManagement)
+  inventoryController.buildManagement
 );
 
 /* **************************************
- * Route to build Add New Classification View (Task 2 - Restricted)
+ * Route to build Add New Classification View
  * URL: /inv/add-classification
- * Protected by checkLogin AND checkAccountType
- ***************************************/
+ * Accessible without login for testing
+ **************************************/
 router.get(
   "/add-classification",
-  utilities.checkLogin,
-  utilities.checkAccountType,
-  utilities.handleErrors(inventoryController.buildAddClassification)
+  inventoryController.buildAddClassification
 );
 
 /* **************************************
- * Route to Process Add New Classification (Task 2 - Restricted)
- * URL: /inv/add-classification (POST)
- * Protected by checkLogin AND checkAccountType
- ***************************************/
+ * Route to Process Add New Classification (POST)
+ * URL: /inv/add-classification
+ * Keep login/account checks if desired
+ **************************************/
 router.post(
   "/add-classification",
-  utilities.checkLogin,
-  utilities.checkAccountType,
   body("classification_name")
     .trim()
     .isLength({ min: 1 })
     .withMessage("Classification name is required.")
     .matches(/^[A-Za-z0-9]+$/)
     .withMessage("Classification name cannot contain spaces or special characters."),
-  utilities.handleErrors(inventoryController.registerClassification)
+  inventoryController.registerClassification
 );
 
 /* **************************************
- * Route to build Add New Inventory View (Task 2 - Restricted)
+ * Route to build Add New Inventory View
  * URL: /inv/add-inventory
- * Protected by checkLogin AND checkAccountType
- ***************************************/
+ * Accessible without login for testing
+ **************************************/
 router.get(
   "/add-inventory",
-  utilities.checkLogin,
-  utilities.checkAccountType,
-  utilities.handleErrors(inventoryController.buildAddInventory)
+  inventoryController.buildAddInventory
 );
 
 /* **************************************
- * Route to Process Add New Inventory (Task 2 - Restricted)
- * URL: /inv/add-inventory (POST)
- * Protected by checkLogin AND checkAccountType
- ***************************************/
+ * Route to Process Add New Inventory (POST)
+ * URL: /inv/add-inventory
+ * Keep login/account checks if desired
+ **************************************/
 router.post(
   "/add-inventory",
-  utilities.checkLogin,
-  utilities.checkAccountType,
   body("inv_make")
     .trim()
     .isLength({ min: 3 }).withMessage("Make must be at least 3 characters."),
@@ -111,7 +106,7 @@ router.post(
   body("classification_id")
     .trim()
     .isInt({ min: 1 }).withMessage("Please select a classification."),
-  utilities.handleErrors(inventoryController.registerInventory)
+  inventoryController.registerInventory
 );
 
 module.exports = router;

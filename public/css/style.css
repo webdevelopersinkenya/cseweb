@@ -182,3 +182,29 @@ p a:hover {
 .vehicle-info a:hover {
   text-decoration: underline;
 }
+.management-view ul {
+  list-style: none;      /* Remove bullets */
+  padding: 0;            /* Remove default padding */
+  margin: 0;             /* Remove default margin */
+  display: flex;
+  flex-direction: column; /* Stack vertically */
+  gap: 10px;              /* Space between links */
+}
+
+.management-view a {
+  text-decoration: underline; /* Underlined text */  
+  color: blue;               /* Blue text */
+  font-weight: normal;       /* Optional: normal weight */
+}
+
+.management-view,
+.management-view ul,
+.management-viewli {
+  background-color: transparent; /* Remove any background */
+}
+
+.management-view a {
+  background-color: transparent; /* Ensure links themselves have no background */
+  text-decoration: underline;  
+  color: blue;
+}
