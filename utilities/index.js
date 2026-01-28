@@ -15,16 +15,22 @@ async function getNav() {
   let navList = '<ul>';
   try {
     const classifications = await inventoryModel.getClassifications();
-    
+
     navList += '<li><a href="/">Home</a></li>';
 
+    // Use a Set to prevent duplicate classification names
+    const seen = new Set();
     classifications.forEach((item) => {
-      const linkPath = `/inv/type/${item.classification_name}`;
-      navList += `<li><a href="${linkPath}">${item.classification_name}</a></li>`;
+      if (!seen.has(item.classification_name)) {
+        const linkPath = `/inv/type/${item.classification_name}`;
+        navList += `<li><a href="${linkPath}">${item.classification_name}</a></li>`;
+        seen.add(item.classification_name);
+      }
     });
 
   } catch (error) {
     console.error("Error building navigation:", error.message, error.stack);
+    // Fallback hardcoded nav
     navList += '<li><a href="/">Home</a></li>';
     navList += '<li><a href="/inv/type/Custom">Custom</a></li>';
     navList += '<li><a href="/inv/type/Sedan">Sedan</a></li>';
@@ -32,24 +38,34 @@ async function getNav() {
     navList += '<li><a href="/inv/type/Truck">Truck</a></li>';
     console.warn("Using hardcoded navigation due to database error or missing classification data.");
   }
+
   navList += '</ul>';
   return navList;
 }
 
 /**
- * Builds a classification select list (e.g., for vehicle types).
- * @param {number} [selectedId] - The ID of the classification to be pre-selected.
+ * Builds a classification select list for forms.
+ * @param {number} [selectedId] - Pre-select this classification if provided.
  * @returns {string} The HTML string for the select list.
  */
 async function buildClassificationList(selectedId = null) {
   try {
     const classifications = await inventoryModel.getClassifications();
+
+    // Filter duplicates using a Map (classification_name => classification_id)
+    const uniqueClasses = new Map();
+    classifications.forEach(row => {
+      if (!uniqueClasses.has(row.classification_name)) {
+        uniqueClasses.set(row.classification_name, row.classification_id);
+      }
+    });
+
     let options = '<select name="classification_id" id="classificationList" required size="4">';
     options += '<option value="">Choose a Classification</option>';
 
-    classifications.forEach((row) => {
-      const selected = (selectedId !== null && row.classification_id == selectedId) ? 'selected' : '';
-      options += `<option value="${row.classification_id}" ${selected}>${row.classification_name}</option>`;
+    uniqueClasses.forEach((id, name) => {
+      const selected = (selectedId !== null && id == selectedId) ? 'selected' : '';
+      options += `<option value="${id}" ${selected}>${name}</option>`;
     });
 
     options += '</select>';
@@ -61,142 +77,116 @@ async function buildClassificationList(selectedId = null) {
 }
 
 /**
- * Builds the HTML for a single vehicle detail view.
- * @param {object} vehicleData - The object containing all vehicle details.
- * @returns {string} The HTML string for the vehicle detail view.
+ * Builds HTML for a single vehicle detail view.
+ * @param {object} vehicleData
+ * @returns {string} HTML string
  */
 async function buildVehicleDetail(vehicleData) {
-    if (!vehicleData) {
-        return '<p class="error-message">Vehicle data is unavailable.</p>';
-    }
+  if (!vehicleData) {
+    return '<p class="error-message">Vehicle data is unavailable.</p>';
+  }
 
-    const formattedPrice = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(vehicleData.inv_price);
+  const formattedPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(vehicleData.inv_price);
+  const formattedMileage = new Intl.NumberFormat('en-US').format(vehicleData.inv_miles);
 
-    const formattedMileage = new Intl.NumberFormat('en-US').format(vehicleData.inv_miles);
-
-    let detailHtml = `
-        <div class="vehicle-detail-container">
-            <div class="vehicle-detail-image">
-                <img src="${vehicleData.inv_image}" alt="${vehicleData.inv_make} ${vehicleData.inv_model} - Full Image" onerror="this.onerror=null;this.src='https://placehold.co/600x400/CCCCCC/000000?text=Image+Missing';">
-            </div>
-            <div class="vehicle-detail-info">
-                <h1>${vehicleData.inv_make} ${vehicleData.inv_model}</h1>
-                <p class="price"><strong>Price:</strong> ${formattedPrice}</p>
-                
-                <hr>
-                <p><strong>Year:</strong> ${vehicleData.inv_year}</p>
-                <p><strong>Mileage:</strong> ${formattedMileage} miles</p>
-                <p><strong>Color:</strong> ${vehicleData.inv_color}</p>
-                <p><strong>Description:</strong> ${vehicleData.inv_description}</p>
-            </div>
-        </div>
-    `;
-    return detailHtml;
+  return `
+    <div class="vehicle-detail-container">
+      <div class="vehicle-detail-image">
+        <img src="${vehicleData.inv_image}" alt="${vehicleData.inv_make} ${vehicleData.inv_model} - Full Image" 
+             onerror="this.onerror=null;this.src='https://placehold.co/600x400/CCCCCC/000000?text=Image+Missing';">
+      </div>
+      <div class="vehicle-detail-info">
+        <h1>${vehicleData.inv_make} ${vehicleData.inv_model}</h1>
+        <p class="price"><strong>Price:</strong> ${formattedPrice}</p>
+        <hr>
+        <p><strong>Year:</strong> ${vehicleData.inv_year}</p>
+        <p><strong>Mileage:</strong> ${formattedMileage} miles</p>
+        <p><strong>Color:</strong> ${vehicleData.inv_color}</p>
+        <p><strong>Description:</strong> ${vehicleData.inv_description}</p>
+      </div>
+    </div>
+  `;
 }
 
 /**
- * Builds the HTML grid of inventory items for a classification view.
- * @param {Array<object>} data - An array of inventory item objects.
- * @returns {string} The HTML string for the grid.
+ * Builds a grid of inventory items for a classification.
+ * @param {Array<object>} data
+ * @returns {string} HTML string
  */
 async function buildClassificationGrid(data) {
-  let grid = '';
-  if (data.length > 0) {
-    grid = '<div class="inv-classification-grid">';
-    data.forEach(vehicle => {
-      grid += `
-        <div class="inv-card">
-          <a href="/inv/detail/${vehicle.inv_id}" title="View details for ${vehicle.inv_make} ${vehicle.inv_model}">
-            <img src="${vehicle.inv_thumbnail}" alt="Image of ${vehicle.inv_make} ${vehicle.inv_model}" onerror="this.onerror=null;this.src='https://placehold.co/280x200/CCCCCC/000000?text=Thumbnail+Missing';">
-          </a>
-          <div class="inv-card-content">
-            <h2>
-              <a href="/inv/detail/${vehicle.inv_id}" title="View details for ${vehicle.inv_make} ${vehicle.inv_model}">
-                ${vehicle.inv_make} ${vehicle.inv_model}
-              </a>
-            </h2>
-            <span>${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(vehicle.inv_price)}</span>
-          </div>
-        </div>
-      `;
-    });
-    grid += '</div>';
-  } else {
-    grid += '<p class="notice">Sorry, no vehicles matching this classification could be found.</p>';
+  if (!data || data.length === 0) {
+    return '<p class="notice">Sorry, no vehicles matching this classification could be found.</p>';
   }
+
+  let grid = '<div class="inv-classification-grid">';
+  data.forEach(vehicle => {
+    grid += `
+      <div class="inv-card">
+        <a href="/inv/detail/${vehicle.inv_id}" title="View details for ${vehicle.inv_make} ${vehicle.inv_model}">
+          <img src="${vehicle.inv_thumbnail}" alt="Image of ${vehicle.inv_make} ${vehicle.inv_model}" 
+               onerror="this.onerror=null;this.src='https://placehold.co/280x200/CCCCCC/000000?text=Thumbnail+Missing';">
+        </a>
+        <div class="inv-card-content">
+          <h2>
+            <a href="/inv/detail/${vehicle.inv_id}" title="View details for ${vehicle.inv_make} ${vehicle.inv_model}">
+              ${vehicle.inv_make} ${vehicle.inv_model}
+            </a>
+          </h2>
+          <span>${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(vehicle.inv_price)}</span>
+        </div>
+      </div>
+    `;
+  });
+  grid += '</div>';
   return grid;
 }
 
 /* ****************************************
-* Middleware to check token validity
-**************************************** */
+ * JWT Authentication Middleware
+ **************************************** */
 function checkJWTToken(req, res, next) {
- if (req.cookies.jwt) {
-  jwt.verify(
-   req.cookies.jwt,
-   process.env.ACCESS_TOKEN_SECRET,
-   function (err, accountData) {
-    if (err) {
-     req.flash("notice", "Please log in");
-     res.clearCookie("jwt");
-     return res.redirect("/account/login");
-    }
-    res.locals.accountData = accountData; // Make account data available to views and next middleware
-    res.locals.loggedin = 1; // Set loggedin flag for views
+  if (req.cookies.jwt) {
+    jwt.verify(req.cookies.jwt, process.env.ACCESS_TOKEN_SECRET, (err, accountData) => {
+      if (err) {
+        req.flash("notice", "Please log in");
+        res.clearCookie("jwt");
+        return res.redirect("/account/login");
+      }
+      res.locals.accountData = accountData; // make available to views
+      res.locals.loggedin = 1;
+      next();
+    });
+  } else {
     next();
-   });
- } else {
-  next();
- }
+  }
 }
 
 /* ****************************************
- * Check Login
- * Purpose: Middleware to ensure a user is logged in.
- * Must be used AFTER checkJWTToken.
- * ************************************ */
+ * Ensure User is Logged In
+ **************************************** */
 function checkLogin(req, res, next) {
   if (res.locals.loggedin) {
-    next(); // User is logged in, proceed
+    next();
   } else {
-    req.flash("notice", "Please log in."); // Flash message
-    return res.redirect("/account/login"); // Redirect to login page
+    req.flash("notice", "Please log in.");
+    return res.redirect("/account/login");
   }
 }
 
 /* ****************************************
- * Check Account Type (Authorization Middleware) (Task 2)
- * Purpose: Middleware to check if a logged-in user has 'Admin' or 'Employee' account_type.
- * Must be used AFTER checkLogin.
- * ************************************ */
+ * Check Account Type (Admin/Employee)
+ **************************************** */
 function checkAccountType(req, res, next) {
-  // Check if user is logged in AND their account_type is 'Admin' or 'Employee'
-  // Use res.locals.accountData which is set by checkJWTToken
   if (res.locals.loggedin && (res.locals.accountData.account_type === 'Admin' || res.locals.accountData.account_type === 'Employee')) {
-    next(); // Authorized, proceed
+    next();
   } else {
-    req.flash("notice", "You are not authorized to access this page. Please log in with appropriate permissions.");
-    // Redirect based on whether they are logged in or not
-    if (res.locals.loggedin) {
-      // If logged in but not authorized for this page, send them to general account page
-      return res.redirect("/account/");
-    } else {
-      // Not logged in, send to login page
-      return res.redirect("/account/login");
-    }
+    req.flash("notice", "You are not authorized to access this page.");
+    return res.redirect(res.locals.loggedin ? "/account/" : "/account/login");
   }
 }
 
-
 /**
- * Higher-order function to wrap async route handlers for centralized error handling.
- * @param {function} fn - The async function to wrap.
- * @returns {function} An Express middleware function.
+ * Higher-order function to wrap async route handlers
  */
 function handleErrors(fn) {
   return function (req, res, next) {
@@ -211,6 +201,6 @@ module.exports = {
   buildClassificationGrid,
   checkJWTToken,
   checkLogin,
-  checkAccountType, // EXPORT NEW FUNCTION
+  checkAccountType,
   handleErrors,
 };

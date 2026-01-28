@@ -86,11 +86,11 @@ async function buildAddClassification(req, res) {
   res.render("inventory/add-classification", {
     title: "Add New Classification",
     nav,
-    errors: null,
-    classification_name: ''
+    errors: [],                 // no validation errors initially
+    classification_name: '',    // empty sticky input
+    flashMessage: req.flash("notice") // flash message for success/failure
   });
 }
-
 /* ***************************
  * Process Add Classification
  ***************************** */
@@ -100,12 +100,12 @@ async function registerClassification(req, res) {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    req.flash("notice", "Please fix the errors below.");
     return res.status(400).render("inventory/add-classification", {
       title: "Add New Classification",
       nav,
       errors: errors.array(),
-      classification_name
+      classification_name,
+      flashMessage: req.flash("notice")
     });
   }
 
@@ -119,8 +119,9 @@ async function registerClassification(req, res) {
       return res.status(500).render("inventory/add-classification", {
         title: "Add New Classification",
         nav,
-        errors: null,
-        classification_name
+        errors: [],
+        classification_name,
+        flashMessage: req.flash("notice")
       });
     }
   } catch (error) {
@@ -129,11 +130,11 @@ async function registerClassification(req, res) {
       title: "Add New Classification",
       nav,
       errors: [{ msg: error.message }],
-      classification_name
+      classification_name,
+      flashMessage: req.flash("notice")
     });
   }
 }
-
 /* ***************************
  * Add Inventory View
  ***************************** */
@@ -146,9 +147,9 @@ async function buildAddInventory(req, res) {
     nav,
     classificationList,
     errors: null,
+    flashMessage: req.flash("notice"), // <--- add this
     inv_make: '', inv_model: '', inv_year: '', inv_description: '',
-    inv_image: 'no-image.png',
-    inv_thumbnail: 'no-image-tn.png',
+    inv_image: 'no-image.png', inv_thumbnail: 'no-image-tn.png',
     inv_price: '', inv_miles: '', inv_color: '', classification_id: ''
   });
 }
@@ -161,8 +162,9 @@ async function registerInventory(req, res) {
   const classificationList = await utilities.buildClassificationList(req.body.classification_id);
 
   const {
-    inv_make, inv_model, inv_year, inv_description, inv_image,
-    inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
+    inv_make, inv_model, inv_year, inv_description,
+    inv_image, inv_thumbnail, inv_price, inv_miles,
+    inv_color, classification_id
   } = req.body;
 
   const errors = validationResult(req);
@@ -173,6 +175,7 @@ async function registerInventory(req, res) {
       nav,
       classificationList,
       errors: errors.array(),
+      flashMessage: req.flash("notice"), // <--- add this
       inv_make, inv_model, inv_year, inv_description,
       inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
     });
@@ -180,8 +183,9 @@ async function registerInventory(req, res) {
 
   try {
     const result = await inventoryModel.addInventory(
-      inv_make, inv_model, inv_year, inv_description, inv_image,
-      inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
+      inv_make, inv_model, inv_year, inv_description,
+      inv_image, inv_thumbnail, inv_price, inv_miles,
+      inv_color, classification_id
     );
 
     if (result) {
@@ -194,6 +198,7 @@ async function registerInventory(req, res) {
         nav,
         classificationList,
         errors: null,
+        flashMessage: req.flash("notice"), // <--- add this
         inv_make, inv_model, inv_year, inv_description,
         inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
       });
@@ -205,12 +210,12 @@ async function registerInventory(req, res) {
       nav,
       classificationList,
       errors: null,
+      flashMessage: req.flash("notice"), // <--- add this
       inv_make, inv_model, inv_year, inv_description,
       inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
     });
   }
 }
-
 module.exports = {
   buildByClassificationName,
   buildByInvId,

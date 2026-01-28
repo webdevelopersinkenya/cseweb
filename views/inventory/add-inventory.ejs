@@ -1,21 +1,54 @@
-<h1><%= title %></h1>
-<p><%= message %></p>
+<div class="inventory-form-container">
+  <h1><%= title %></h1>
 
-<form action="/inv/add-inventory" method="post">
-  <label for="inv_make">Make</label>
-  <input type="text" id="inv_make" name="inv_make" value="<%= data.inv_make || '' %>" required>
+  <!-- Display flash messages -->
+  <% if (locals.flash && locals.flash.notice) { %>
+    <% locals.flash.notice.forEach(msg => { %>
+      <p class="flash-message"><%= msg %></p>
+    <% }); %>
+  <% } %>
 
-  <label for="inv_model">Model</label>
-  <input type="text" id="inv_model" name="inv_model" value="<%= data.inv_model || '' %>" required>
+  <!-- Display validation errors -->
+  <% if (errors && errors.length > 0) { %>
+    <ul class="error-messages">
+      <% errors.forEach(error => { %>
+        <li><%= error.msg %></li>
+      <% }); %>
+    </ul>
+  <% } %>
 
-  <label for="inv_year">Year</label>
-  <input type="number" id="inv_year" name="inv_year" value="<%= data.inv_year || '' %>" required>
+  <form action="/inv/add-inventory" method="post" class="inventory-form">
+    <label for="classificationList">Classification</label>
+    <%- classificationList %>
 
-  <label for="classificationList">Classification</label>
-  <%= classificationList %>
+    <label for="inv_make">Make</label>
+    <input type="text" id="inv_make" name="inv_make" value="<%= inv_make %>" required>
 
-  <label for="inv_price">Price</label>
-  <input type="number" id="inv_price" name="inv_price" value="<%= data.inv_price || '' %>" required>
+    <label for="inv_model">Model</label>
+    <input type="text" id="inv_model" name="inv_model" value="<%= inv_model %>" required>
 
-  <button type="submit">Add Inventory Item</button>
-</form>
+    <label for="inv_description">Description</label>
+    <textarea id="inv_description" name="inv_description" required><%= inv_description %></textarea>
+
+    <label for="inv_image">Image Path</label>
+    <input type="text" id="inv_image" name="inv_image" value="<%= inv_image %>" required>
+
+    <label for="inv_thumbnail">Thumbnail Path</label>
+    <input type="text" id="inv_thumbnail" name="inv_thumbnail" value="<%= inv_thumbnail %>" required>
+
+    <label for="inv_price">Price</label>
+    <input type="number" id="inv_price" name="inv_price" value="<%= inv_price %>" required>
+
+    <label for="inv_year">Year</label>
+    <input type="number" id="inv_year" name="inv_year" value="<%= inv_year %>" required>
+
+    <label for="inv_miles">Miles</label>
+    <input type="number" id="inv_miles" name="inv_miles" value="<%= inv_miles %>" required>
+
+    <label for="inv_color">Color</label>
+    <input type="text" id="inv_color" name="inv_color" value="<%= inv_color %>" required>
+
+    <button type="submit" class="submit-button">Add Vehicle</button>
+  </form>
+</div>
+

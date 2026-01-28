@@ -1,8 +1,30 @@
 <h1><%= title %></h1>
-<p><%= message %></p>
+
+<!-- Display flash message if it exists -->
+<% const message = (typeof flashMessage !== 'undefined') ? flashMessage : req.flash('notice'); %>
+<% if (message && message.length > 0) { %>
+  <p style="color: green;"><%= message %></p>
+<% } %>
+
+<!-- Display server-side validation errors -->
+<% if (errors && errors.length > 0) { %>
+  <ul style="color: red;">
+    <% errors.forEach(error => { %>
+      <li><%= error.msg %></li>
+    <% }) %>
+  </ul>
+<% } %>
 
 <form action="/inv/add-classification" method="post">
   <label for="classification_name">Classification Name</label>
-  <input type="text" id="classification_name" name="classification_name" required pattern="[A-Za-z]+" title="No spaces or special characters">
+  <input 
+    type="text" 
+    id="classification_name" 
+    name="classification_name" 
+    required 
+    pattern="[A-Za-z]+" 
+    title="No spaces or special characters"
+    value="<%= classification_name || '' %>" <!-- sticky input -->
+  >
   <button type="submit">Add Classification</button>
 </form>
