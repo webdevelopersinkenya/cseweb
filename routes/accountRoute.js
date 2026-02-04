@@ -115,16 +115,18 @@ router.post(
 /* **************************************
  * POST Account Password Update
  **************************************/
+// Process Account Password Update
 router.post(
   "/updatePassword",
-  checkLogin,
-  regValidate.changePasswordRules(),
-  regValidate.checkPasswordData,
-  utilities.handleErrors(accountController.updatePassword)
+  checkLogin,                     // make sure user is logged in
+  regValidate.changePasswordRules(), // password validation rules
+  regValidate.checkPasswordData,      // validation check
+  utilities.handleErrors(accountController.updatePassword) // controller function
 );
 
 /* **************************************
  * Logout
+ * Clears session and JWT cookie, redirects home
  **************************************/
 router.get(
   "/logout",

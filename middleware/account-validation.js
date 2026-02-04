@@ -25,12 +25,9 @@ validate.loginRules = () => {
   ];
 };
 
-/* **********************************
- * Login Validation Check
- ********************************** */
+/* Login Validation Check */
 validate.checkLoginData = async (req, res, next) => {
   const errors = validationResult(req);
-
   if (!errors.isEmpty()) {
     const nav = await utilities.getNav();
     req.flash("notice", "Please fix the errors below.");
@@ -74,9 +71,7 @@ validate.registrationRules = () => {
   ];
 };
 
-/* **********************************
- * Registration Check
- ********************************** */
+/* Registration Check */
 validate.checkRegData = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -112,10 +107,8 @@ validate.updateAccountRules = () => {
       .normalizeEmail()
       .withMessage("A valid email is required.")
       .custom(async (account_email, { req }) => {
-        const currentAccount = req.session.account;
+        const currentAccount = req.session.accountData;
         if (!currentAccount) throw new Error("User session not found.");
-
-        // Only check for email change
         if (account_email !== currentAccount.account_email) {
           const exists = await accountModel.checkExistingEmail(account_email);
           if (exists) throw new Error("Email already exists. Please use a different email.");
@@ -124,59 +117,56 @@ validate.updateAccountRules = () => {
   ];
 };
 
-/* **********************************
- * Account Update Check
- ********************************** */
+/* Account Update Check */
 validate.checkUpdateData = async (req, res, next) => {
   const errors = validationResult(req);
-  const { account_firstname, account_lastname, account_email, account_id } = req.body;
+  const accountData = req.session.accountData || {};
 
   if (!errors.isEmpty()) {
     const nav = await utilities.getNav();
-    req.flash("notice", "Please fix the errors below to update your account.");
+    req.flash("notice", "Please fix the errors below.");
     return res.status(400).render("account/update-account", {
-      title: "Edit Account",
-      nav,
+      title: "Update Account",
+      account: {
+        account_id: req.body.account_id,
+        account_firstname: req.body.account_firstname,
+        account_lastname: req.body.account_lastname,
+        account_email: req.body.account_email,
+      },
       errors: errors.array(),
-      account_firstname,
-      account_lastname,
-      account_email,
-      account_id,
+      notice: req.flash("notice"),
     });
   }
   next();
 };
 
 /* **********************************
- * Password Rules
+ * Password Validation Rules (words only)
  ********************************** */
 validate.changePasswordRules = () => {
   return [
     body("account_password")
       .trim()
+      .matches(/^[A-Za-z]+$/)
+      .withMessage("Password must contain letters only.")
       .isLength({ min: 4 })
-      .withMessage("Password must be at least 4 characters."),
+      .withMessage("Password must be at least 4 letters."),
   ];
 };
 
-/* **********************************
- * Password Check
- ********************************** */
+/* Password Check */
 validate.checkPasswordData = async (req, res, next) => {
   const errors = validationResult(req);
-  const accountData = req.session.account;
+  const accountData = req.session.accountData || {};
 
   if (!errors.isEmpty()) {
     const nav = await utilities.getNav();
     req.flash("notice", "Please fix the errors below to change your password.");
     return res.status(400).render("account/update-account", {
-      title: "Edit Account",
-      nav,
+      title: "Change Password",
+      account: accountData,
       errors: errors.array(),
-      account_id: req.body.account_id,
-      account_firstname: accountData.account_firstname,
-      account_lastname: accountData.account_lastname,
-      account_email: accountData.account_email,
+      notice: req.flash("notice"),
     });
   }
   next();

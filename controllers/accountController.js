@@ -110,21 +110,34 @@ async function buildAccountManagement(req, res) {
     notice: req.flash("notice"),
   });
 }
-
 /* ****************************************
  * Process Logout
+ * Deletes session & token cookie, redirects to home
  **************************************** */
 async function accountLogout(req, res) {
+  // Flash message (optional, can show on home page)
   req.flash("notice", "You have been logged out.");
+
+  // Destroy session
   req.session.destroy((err) => {
     if (err) {
       console.error("Session destroy error:", err);
-      return res.redirect("/account/");
+      return res.redirect("/"); // fallback to home if error
     }
+
+    // Clear token cookie
     res.clearCookie("jwt");
-    return res.redirect("/account/login");
+
+    // Redirect to home
+    return res.redirect("/");
   });
 }
+
+module.exports = {
+  // ...existing exports
+  accountLogout,
+};
+
 
 /* ****************************************
  * Deliver account update view (GET)
@@ -192,15 +205,22 @@ async function updatePassword(req, res, next) {
   try {
     const { account_id, account_password } = req.body;
 
+    // Hash the new password
     const hashedPassword = await bcrypt.hash(account_password, 10);
-    await accountModel.updatePassword(account_id, hashedPassword);
 
-    // Fetch account to re-render form
+    // Update password in database
+    const result = await accountModel.updatePassword(account_id, hashedPassword);
+
+    // Fetch the updated account info
     const updatedAccount = await accountModel.getAccountById(account_id);
 
+    // Update session
     req.session.accountData = updatedAccount;
 
+    // Send success message
     req.flash("success", "Password updated successfully.");
+
+    // Render account update page
     res.render("account/update-account", {
       title: "Update Account",
       account: updatedAccount,
@@ -212,7 +232,6 @@ async function updatePassword(req, res, next) {
     next(err);
   }
 }
-
 module.exports = {
   buildLogin,
   buildRegister,
