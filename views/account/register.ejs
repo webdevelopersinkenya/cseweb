@@ -1,9 +1,9 @@
 <h1>Register</h1>
 
-<!-- Flash notice messages -->
-<% if (notice && notice.length) { %>
+<!-- Flash notice message -->
+<% if (notice && notice.length > 0) { %>
   <div class="flash-message">
-    <%= notice %>
+    <p><%= notice[0] %></p> <!-- Only show the first message -->
   </div>
 <% } %>
 
@@ -32,16 +32,18 @@
            value="<%= account_email || '' %>">
 
     <label for="account_password">Password:</label>
-    <input type="password" name="account_password" id="account_password" required pattern="^[A-Za-z]{6,}$"
-  title="Password must be at least 6 letters (A–Z or a–z only).">
+    <input type="password" name="account_password" id="account_password" required
+           minlength="4"
+           title="Password must be at least 4 characters.">
 
-  <p class="password-info">
-  Password must be at least 6 letters (A–Z or a–z only).
-</p>
-
+    <p class="password-info">
+      Password must be at least 4 characters.
+    </p>
 
     <label for="account_password2">Confirm Password:</label>
-    <input type="password" id="account_password2" name="account_password2" required>
+    <input type="password" id="account_password2" name="account_password2" required
+           minlength="4"
+           title="Please enter the same password as above.">
 
     <button type="submit" class="submitBtn">Register</button>
   </form>

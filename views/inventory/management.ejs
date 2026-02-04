@@ -2,8 +2,10 @@
 
 
 <main>
+  <% if (accountData.account_type !== "Client") { %>
   <h2> Vehicle Management </h2>
-
+ <p><a href="/inv/">Manage Inventory</a></p>
+<% } %>
   <nav class="management-view">
     <ul>
       <li><a href="/inv/add-classification">Add New Classification</a></li>

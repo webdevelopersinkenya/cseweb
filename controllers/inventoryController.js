@@ -1,35 +1,28 @@
 const inventoryModel = require("../models/inventory-model");
-const utilities = require("../utilities/"); // only declare once
-const { body, validationResult } = require('express-validator');
+const utilities = require("../utilities/");
+const { body, validationResult } = require("express-validator");
 
 /* ***************************
  * Build inventory by classification
  ***************************** */
 async function buildByClassificationName(req, res, next) {
   try {
-    const classification_name = req.params.classificationName;
-    const data = await inventoryModel.getInventoryByClassificationName(classification_name);
+    const classificationName = req.params.classificationName;
+    const data = await inventoryModel.getInventoryByClassificationName(classificationName);
     const vehicles = data.rows || [];
     const nav = await utilities.getNav();
 
-    if (vehicles.length === 0) {
-      return res.render("inventory/classification", {
-        title: `${classification_name} Vehicles`,
-        classificationName: classification_name,
-        nav,
-        vehicles,
-        grid: "<p class='notice'>No vehicles found for this classification.</p>"
-      });
-    }
-
-    const gridHtml = await utilities.buildClassificationGrid(vehicles);
+    const gridHtml = vehicles.length
+      ? await utilities.buildClassificationGrid(vehicles)
+      : "<p class='notice'>No vehicles found for this classification.</p>";
 
     res.render("inventory/classification", {
-      title: `${classification_name} Vehicles`,
-      classificationName: classification_name,
+      title: `${classificationName} Vehicles`,
+      classificationName,
       nav,
       vehicles,
-      grid: gridHtml
+      grid: gridHtml,
+      flashMessage: req.flash("notice")
     });
   } catch (error) {
     next(error);
@@ -37,14 +30,14 @@ async function buildByClassificationName(req, res, next) {
 }
 
 /* ***************************
- * Build inventory item detail view
+ * Build single inventory item detail view
  ***************************** */
 async function buildByInvId(req, res, next) {
   try {
-    const inv_id = parseInt(req.params.invId);
-    if (isNaN(inv_id)) throw Object.assign(new Error("Invalid inventory ID"), { status: 400 });
+    const invId = parseInt(req.params.invId);
+    if (isNaN(invId)) throw Object.assign(new Error("Invalid inventory ID"), { status: 400 });
 
-    const vehicleData = await inventoryModel.getInventoryById(inv_id);
+    const vehicleData = await inventoryModel.getInventoryById(invId);
     if (!vehicleData) throw Object.assign(new Error("Vehicle Not Found"), { status: 404 });
 
     const nav = await utilities.getNav();
@@ -52,7 +45,8 @@ async function buildByInvId(req, res, next) {
     res.render("inventory/detail", {
       title: `${vehicleData.inv_make} ${vehicleData.inv_model}`,
       nav,
-      vehicleData
+      vehicleData,
+      flashMessage: req.flash("notice")
     });
   } catch (error) {
     next(error);
@@ -60,17 +54,18 @@ async function buildByInvId(req, res, next) {
 }
 
 /* ***************************
- * Management View (Vehicle Management Page)
+ * Management View (Dashboard)
  ***************************** */
 async function buildManagement(req, res, next) {
   try {
     const nav = await utilities.getNav();
-    const classificationList = await utilities.buildClassificationList();
+    const accountData = res.locals.accountData; // Employee/Admin info
 
-    res.render("inventory/inventory-overview", { // new ejs file
-      title: "Vehicle Management",
+    res.render("inventory/management", { // new EJS template
+      title: "Inventory Management",
       nav,
-      classificationList
+      accountData,
+      flashMessage: req.flash("notice")
     });
   } catch (error) {
     next(error);
@@ -86,11 +81,12 @@ async function buildAddClassification(req, res) {
   res.render("inventory/add-classification", {
     title: "Add New Classification",
     nav,
-    errors: [],                 // no validation errors initially
-    classification_name: '',    // empty sticky input
-    flashMessage: req.flash("notice") // flash message for success/failure
+    errors: [],
+    classification_name: "",
+    flashMessage: req.flash("notice")
   });
 }
+
 /* ***************************
  * Process Add Classification
  ***************************** */
@@ -111,22 +107,23 @@ async function registerClassification(req, res) {
 
   try {
     const result = await inventoryModel.addClassification(classification_name);
+
     if (result) {
       req.flash("notice", `Classification "${classification_name}" added successfully.`);
       return res.redirect("/inv/");
-    } else {
-      req.flash("notice", "Failed to add classification.");
-      return res.status(500).render("inventory/add-classification", {
-        title: "Add New Classification",
-        nav,
-        errors: [],
-        classification_name,
-        flashMessage: req.flash("notice")
-      });
     }
+
+    req.flash("notice", "Failed to add classification.");
+    res.status(500).render("inventory/add-classification", {
+      title: "Add New Classification",
+      nav,
+      errors: [],
+      classification_name,
+      flashMessage: req.flash("notice")
+    });
   } catch (error) {
     req.flash("notice", error.message);
-    return res.status(500).render("inventory/add-classification", {
+    res.status(500).render("inventory/add-classification", {
       title: "Add New Classification",
       nav,
       errors: [{ msg: error.message }],
@@ -135,6 +132,7 @@ async function registerClassification(req, res) {
     });
   }
 }
+
 /* ***************************
  * Add Inventory View
  ***************************** */
@@ -146,11 +144,18 @@ async function buildAddInventory(req, res) {
     title: "Add New Inventory Item",
     nav,
     classificationList,
-    errors: null,
-    flashMessage: req.flash("notice"), // <--- add this
-    inv_make: '', inv_model: '', inv_year: '', inv_description: '',
-    inv_image: 'no-image.png', inv_thumbnail: 'no-image-tn.png',
-    inv_price: '', inv_miles: '', inv_color: '', classification_id: ''
+    errors: [],
+    flashMessage: req.flash("notice"),
+    inv_make: "",
+    inv_model: "",
+    inv_year: "",
+    inv_description: "",
+    inv_image: "no-image.png",
+    inv_thumbnail: "no-image-tn.png",
+    inv_price: "",
+    inv_miles: "",
+    inv_color: "",
+    classification_id: ""
   });
 }
 
@@ -175,7 +180,7 @@ async function registerInventory(req, res) {
       nav,
       classificationList,
       errors: errors.array(),
-      flashMessage: req.flash("notice"), // <--- add this
+      flashMessage: req.flash("notice"),
       inv_make, inv_model, inv_year, inv_description,
       inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
     });
@@ -191,31 +196,32 @@ async function registerInventory(req, res) {
     if (result) {
       req.flash("notice", `Vehicle "${inv_make} ${inv_model}" added successfully.`);
       return res.redirect("/inv/");
-    } else {
-      req.flash("notice", "Failed to add vehicle.");
-      return res.status(500).render("inventory/add-inventory", {
-        title: "Add New Inventory Item",
-        nav,
-        classificationList,
-        errors: null,
-        flashMessage: req.flash("notice"), // <--- add this
-        inv_make, inv_model, inv_year, inv_description,
-        inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
-      });
     }
-  } catch (error) {
-    req.flash("notice", "Unexpected error: " + error.message);
-    return res.status(500).render("inventory/add-inventory", {
+
+    req.flash("notice", "Failed to add vehicle.");
+    res.status(500).render("inventory/add-inventory", {
       title: "Add New Inventory Item",
       nav,
       classificationList,
-      errors: null,
-      flashMessage: req.flash("notice"), // <--- add this
+      errors: [],
+      flashMessage: req.flash("notice"),
+      inv_make, inv_model, inv_year, inv_description,
+      inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
+    });
+  } catch (error) {
+    req.flash("notice", "Unexpected error: " + error.message);
+    res.status(500).render("inventory/add-inventory", {
+      title: "Add New Inventory Item",
+      nav,
+      classificationList,
+      errors: [],
+      flashMessage: req.flash("notice"),
       inv_make, inv_model, inv_year, inv_description,
       inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
     });
   }
 }
+
 module.exports = {
   buildByClassificationName,
   buildByInvId,

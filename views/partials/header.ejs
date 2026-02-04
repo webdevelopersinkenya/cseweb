@@ -1,23 +1,17 @@
-
 <header>
   <a href="/" title="Return to home page">
-   <h1 class="logo-text">CSE MOTORS</h1>
-
+    <h1 class="logo-text">CSE MOTORS</h1>
   </a>
 
   <div class="account-links">
-    <% if (typeof loggedin !== 'undefined' && loggedin && accountData) { %>
-      <!-- Display welcome message with link to account management -->
-      <a href="/account/" title="Manage your account">
-        Welcome <%= accountData.account_firstname %>
-      </a>
+    <% if (loggedin && accountData) { %>
+      <!-- Personalized welcome message for logged-in users -->
+      <span>Welcome, <%= accountData.account_firstname %>!</span>
+      <a href="/account/" title="Manage your account">Account</a>
       <a href="/account/logout" title="Click to log out">Logout</a>
     <% } else { %>
-      <!-- Show My Account link when not logged in -->
+      <!-- Show My Account link for guests -->
       <a href="/account/login" title="Click to log in">My Account</a>
     <% } %>
   </div>
 </header>
-
-
-

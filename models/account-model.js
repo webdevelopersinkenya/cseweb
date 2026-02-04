@@ -78,35 +78,22 @@ async function getAccountById(account_id) {
  * Update account information (Task 5)
  * Purpose: Updates a client's first name, last name, and email.
  * ***************************** */
-async function updateAccount(
-  account_firstname,
-  account_lastname,
-  account_email,
-  account_id
-) {
+// Update account info
+async function updateAccount({ account_id, account_firstname, account_lastname, account_email }) {
   try {
-    const sql = `
-      UPDATE account SET
-        account_firstname = $1,
-        account_lastname = $2,
-        account_email = $3
-      WHERE account_id = $4
-      RETURNING *`;
-    const result = await pool.query(sql, [
-      account_firstname,
-      account_lastname,
-      account_email,
-      account_id,
-    ]);
-    return result.rows[0];
+    const sql = `UPDATE accounts
+                 SET account_firstname = ?, account_lastname = ?, account_email = ?
+                 WHERE account_id = ?`;
+    const params = [account_firstname, account_lastname, account_email, account_id];
+
+    const [result] = await pool.query(sql, params);
+    return result;
   } catch (error) {
-    console.error("updateAccount error:", error);
-    if (error.code === '23505') { // Unique constraint violation (e.g., email already exists)
-      throw new Error("Email already exists. Please use a different email.");
-    }
-    throw new Error("Failed to update account information.");
+    console.error("Error updating account:", error);
+    throw error;
   }
 }
+
 
 /* *****************************
  * Update account password (Task 5)
@@ -129,6 +116,42 @@ async function updatePassword(account_password, account_id) {
     throw new Error("Failed to update password.");
   }
 }
+/* *****************************
+ * Get account by account_id
+ * ***************************** */
+async function getAccountById(account_id) {
+  try {
+    const sql = `
+      SELECT account_id, account_firstname, account_lastname, account_email
+      FROM account
+      WHERE account_id = $1
+    `
+    const result = await pool.query(sql, [account_id])
+    return result.rows[0]
+  } catch (error) {
+    return error.message
+  }
+}
+/* *****************************
+ * Update account function
+ * ***************************** */
+async function updateAccount({ account_id, account_firstname, account_lastname, account_email }) {
+  try {
+    const sql = `
+      UPDATE accounts
+      SET account_firstname = $1,
+          account_lastname = $2,
+          account_email = $3
+      WHERE account_id = $4
+    `;
+    const values = [account_firstname, account_lastname, account_email, account_id];
+    const result = await pool.query(sql, values);
+    return result.rowCount; // number of rows updated
+  } catch (error) {
+    console.error("Error updating account:", error);
+    throw error;
+  }
+}
 
 module.exports = {
   registerAccount,
@@ -137,4 +160,5 @@ module.exports = {
   getAccountById,
   updateAccount,
   updatePassword,
+   getAccountById,
 };

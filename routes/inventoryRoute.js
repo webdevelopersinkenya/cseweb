@@ -1,53 +1,50 @@
 const express = require("express");
-const router = new express.Router();
+const router = express.Router();
 const inventoryController = require("../controllers/inventoryController");
-const { body } = require('express-validator');
+const { body } = require("express-validator");
+const utilities = require("../utilities/");
 
 /* **************************************
- * Route to build inventory by classification view
- * URL: /inv/type/:classificationName
- * Publicly accessible
+ * PUBLIC ROUTES (NO LOGIN REQUIRED)
  **************************************/
-router.get(
-  "/type/:classificationName",
-  inventoryController.buildByClassificationName
-);
 
-/* **************************************
- * Route to build single inventory item detail view
- * URL: /inv/detail/:invId
- * Publicly accessible
- **************************************/
-router.get(
-  "/detail/:invId",
-  inventoryController.buildByInvId
-);
-
-/* **************************************
- * Route to build Management View (Task 2)
- * URL: /inv/
- * Accessible without login for testing
- **************************************/
+// Inventory management dashboard
 router.get(
   "/",
-  inventoryController.buildManagement
+  //utilities.checkJWTToken,
+  //utilities.checkAccountType,
+  utilities.handleErrors(inventoryController.buildManagement)
+);
+
+// View inventory by classification
+router.get(
+  "/type/:classificationName",
+  //utilities.checkJWTToken,
+  //utilities.checkAccountType,
+  utilities.handleErrors(inventoryController.buildByClassificationName)
+);
+
+// View single inventory item
+router.get(
+  "/detail/:invId",
+  //utilities.checkJWTToken,
+  //utilities.checkAccountType,
+  utilities.handleErrors(inventoryController.buildByInvId)
 );
 
 /* **************************************
- * Route to build Add New Classification View
- * URL: /inv/add-classification
- * Accessible without login for testing
+ * CLASSIFICATION ROUTES (OPEN FOR NOW)
  **************************************/
+
+// Add classification form
 router.get(
   "/add-classification",
-  inventoryController.buildAddClassification
+  //utilities.checkJWTToken,
+  //utilities.checkAccountType,
+  utilities.handleErrors(inventoryController.buildAddClassification)
 );
 
-/* **************************************
- * Route to Process Add New Classification (POST)
- * URL: /inv/add-classification
- * Keep login/account checks if desired
- **************************************/
+// Process add classification
 router.post(
   "/add-classification",
   body("classification_name")
@@ -55,58 +52,38 @@ router.post(
     .isLength({ min: 1 })
     .withMessage("Classification name is required.")
     .matches(/^[A-Za-z0-9]+$/)
-    .withMessage("Classification name cannot contain spaces or special characters."),
-  inventoryController.registerClassification
+    .withMessage("No spaces or special characters."),
+  utilities.handleErrors(inventoryController.registerClassification)
 );
 
 /* **************************************
- * Route to build Add New Inventory View
- * URL: /inv/add-inventory
- * Accessible without login for testing
+ * INVENTORY ROUTES (OPEN FOR NOW)
  **************************************/
+
+const inventoryValidationRules = [
+  body("inv_make").trim().isLength({ min: 3 }),
+  body("inv_model").trim().isLength({ min: 3 }),
+  body("inv_year").isInt({ min: 1900, max: new Date().getFullYear() + 2 }),
+  body("inv_description").trim().isLength({ min: 10 }),
+  body("inv_image").trim().isLength({ min: 6 }),
+  body("inv_thumbnail").trim().isLength({ min: 6 }),
+  body("inv_price").isFloat({ min: 0 }),
+  body("inv_miles").isInt({ min: 0 }),
+  body("inv_color").trim().isLength({ min: 3 }),
+  body("classification_id").isInt({ min: 1 })
+];
+
+// Add inventory form
 router.get(
   "/add-inventory",
-  inventoryController.buildAddInventory
+  utilities.handleErrors(inventoryController.buildAddInventory)
 );
 
-/* **************************************
- * Route to Process Add New Inventory (POST)
- * URL: /inv/add-inventory
- * Keep login/account checks if desired
- **************************************/
+// Process add inventory
 router.post(
   "/add-inventory",
-  body("inv_make")
-    .trim()
-    .isLength({ min: 3 }).withMessage("Make must be at least 3 characters."),
-  body("inv_model")
-    .trim()
-    .isLength({ min: 3 }).withMessage("Model must be at least 3 characters."),
-  body("inv_year")
-    .trim()
-    .isInt({ min: 1900, max: new Date().getFullYear() + 2 }).withMessage("Year must be a valid 4-digit number."),
-  body("inv_description")
-    .trim()
-    .isLength({ min: 10 }).withMessage("Description must be at least 10 characters."),
-  body("inv_image")
-    .trim()
-    .isLength({ min: 6 }).withMessage("Image path is required."),
-  body("inv_thumbnail")
-    .trim()
-    .isLength({ min: 6 }).withMessage("Thumbnail path is required."),
-  body("inv_price")
-    .trim()
-    .isFloat({ min: 0 }).withMessage("Price must be a positive number."),
-  body("inv_miles")
-    .trim()
-    .isInt({ min: 0 }).withMessage("Mileage must be a positive integer."),
-  body("inv_color")
-    .trim()
-    .isLength({ min: 3 }).withMessage("Color is required."),
-  body("classification_id")
-    .trim()
-    .isInt({ min: 1 }).withMessage("Please select a classification."),
-  inventoryController.registerInventory
+  inventoryValidationRules,
+  utilities.handleErrors(inventoryController.registerInventory)
 );
 
 module.exports = router;

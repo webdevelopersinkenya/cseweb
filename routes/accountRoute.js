@@ -1,44 +1,43 @@
+// routes/accountRoute.js
+
 const express = require("express");
-const router = new express.Router();
-const accountController = require("../controllers/accountController.js");
+const router = express.Router();
+const accountController = require("../controllers/accountController");
 const utilities = require("../utilities/");
-const regValidate = require("../middleware/validation");
+const regValidate = require("../middleware/account-validation"); // Make sure this path matches your folder structure
+const accountModel = require("../models/account-model"); // <-- add this
+
+// Middleware to prevent logged-in users from accessing login/register
+const { checkLogin, checkLogout } = require("../utilities");
 
 /* **************************************
  * GET login view
- * URL: /account/login
- ***************************************/
-router.get("/login", utilities.handleErrors(async (req, res) => {
-  const nav = await utilities.getNav();
-  res.render("account/login", {
-    title: "Login",
-    nav,
-    errors: [],
-    account_email: "",           // <-- match your input name
-    notice: req.flash("notice")  // <-- pass flash messages
-  });
-}));
-
+ * Only accessible if logged out
+ **************************************/
+router.get(
+  "/login",
+  checkLogout,
+  utilities.handleErrors(accountController.buildLogin)
+);
 
 /* **************************************
  * GET registration view
- * URL: /account/register
- * Always sends empty errors array if none exist
- ***************************************/
-
-router.get("/register", utilities.handleErrors(accountController.buildRegister));
-
-
-
+ * Only accessible if logged out
+ **************************************/
+router.get(
+  "/register",
+  checkLogout,
+  utilities.handleErrors(accountController.buildRegister)
+);
 
 /* **************************************
  * Process Registration
  * URL: /account/register
  * Includes validation middleware
- ***************************************/
+ **************************************/
 router.post(
   "/register",
-  regValidate.registationRules(),
+  regValidate.registrationRules(),
   regValidate.checkRegData,
   utilities.handleErrors(accountController.registerAccount)
 );
@@ -46,8 +45,7 @@ router.post(
 /* **************************************
  * Process Login Request
  * URL: /account/login
- * Includes validation middleware and points to accountLogin controller
- ***************************************/
+ **************************************/
 router.post(
   "/login",
   regValidate.loginRules(),
@@ -57,54 +55,80 @@ router.post(
 
 /* **************************************
  * GET Account Management View
- * URL: /account/
- * Purpose: Displays client's account dashboard after login
- * Applies checkLogin middleware to protect this route.
- ***************************************/
+ * Protected route (must be logged in)
+ **************************************/
 router.get(
   "/",
-  utilities.checkLogin,
+  checkLogin,
   utilities.handleErrors(accountController.buildAccountManagement)
 );
 
 /* **************************************
- * GET Account Update View
- * URL: /account/update
- ***************************************/
+ * GET Account Update View (all users)
+ **************************************/
 router.get(
   "/update",
-  utilities.checkLogin,
-  utilities.handleErrors(accountController.buildAccountUpdate)
+  checkLogin,
+  utilities.handleErrors(async (req, res) => {
+    const accountData = req.session.accountData;
+
+    if (!accountData) {
+      // Fallback: send an empty object so EJS doesn't crash
+      return res.render("account/update-account", {
+        title: "Update Account",
+        errors: null,
+        account: {}, // <-- must pass something
+        notice: req.flash("notice")
+      });
+    }
+
+    res.render("account/update-account", {
+      title: "Update Account",
+      errors: null,
+      account: accountData, // <-- this is your real data
+      notice: req.flash("notice")
+    });
+  })
 );
 
 /* **************************************
- * Process Account Profile Update (Task 5)
- * URL: /account/update (POST)
- ***************************************/
+ * GET Account Update by ID (optional, admin maybe)
+ **************************************/
+router.get(
+  "/update/:account_id",
+  checkLogin,
+  utilities.handleErrors(accountController.buildUpdateAccount)
+);
+
+/* **************************************
+ * POST Account Profile Update
+ **************************************/
+// Process Account Profile Update
 router.post(
   "/update",
-  utilities.checkLogin,
-  regValidate.updateAccountRules(),
-  regValidate.checkUpdateData,
-  utilities.handleErrors(accountController.updateAccount)
+  checkLogin,                       
+  regValidate.updateAccountRules(),  
+  regValidate.checkUpdateData,       
+  utilities.handleErrors(accountController.updateAccount) 
 );
 
 /* **************************************
- * Process Account Password Update (Task 5)
- * URL: /account/updatePassword (POST)
- ***************************************/
+ * POST Account Password Update
+ **************************************/
 router.post(
   "/updatePassword",
-  utilities.checkLogin,
+  checkLogin,
   regValidate.changePasswordRules(),
   regValidate.checkPasswordData,
   utilities.handleErrors(accountController.updatePassword)
 );
 
 /* **************************************
- * Process Logout (Task 6)
- * URL: /account/logout
- ***************************************/
-router.get("/logout", utilities.handleErrors(accountController.accountLogout));
+ * Logout
+ **************************************/
+router.get(
+  "/logout",
+  utilities.handleErrors(accountController.accountLogout)
+);
 
 module.exports = router;

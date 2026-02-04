@@ -270,4 +270,153 @@ p a:hover {
   border-radius: 4px;
   margin-bottom: 10px;
 }
+/* Container for account dashboard */
+.account-dashboard {
+  max-width: 700px;
+  margin: 30px auto;
+  padding: 20px;
+  background-color: #fdfdfd;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  font-family: Arial, sans-serif;
+}
 
+/* Container for account dashboard */
+.account-dashboard {
+  max-width: 700px;
+  margin: 30px auto;
+  padding: 20px;
+  background-color: #fdfdfd;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  font-family: Arial, sans-serif;
+}
+
+/* Greeting centered */
+.account-dashboard h2 {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin-bottom: 10px;
+  text-align: center;  /* Center the text */
+}
+
+/* Subheading for admins/employees */
+.account-dashboard h3 {
+  font-size: 1.5rem;
+  color: #34495e;
+  margin-top: 25px;
+  margin-bottom: 8px;
+  text-align: center; /* Optional: center h3 too */
+}
+
+/* Paragraphs & links */
+.account-dashboard p {
+  font-size: 1rem;
+  margin-bottom: 15px;
+  text-align: center; /* Center the links and paragraphs */
+}
+
+.account-dashboard a {
+  color: #2980b9;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.account-dashboard a:hover {
+  color: #1abc9c;
+  text-decoration: underline;
+}
+
+/* Responsive text */
+@media (max-width: 600px) {
+  .account-dashboard h2 {
+    font-size: 1.6rem;
+  }
+  .account-dashboard h3 {
+    font-size: 1.3rem;
+  }
+  .account-dashboard p {
+    font-size: 0.95rem;
+  }
+}
+/* General page styling */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f7f7f7;
+  padding: 40px;
+}
+
+/* Title */
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+/* Form container */
+form {
+  max-width: 400px;
+  margin: 0 auto;
+  background-color: #fff;
+  padding: 25px 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Labels */
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+}
+
+/* Inputs */
+input[type="text"],
+input[type="email"] {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus {
+  border-color: #007BFF;
+  outline: none;
+}
+
+/* Button */
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #007BFF;
+  color: #fff;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Optional: flash message */
+.flash {
+  max-width: 400px;
+  margin: 10px auto;
+  padding: 12px;
+  background-color: #f8d7da;
+  color: #721c24;
+  border-radius: 6px;
+  border: 1px solid #f5c6cb;
+  text-align: center;
+}

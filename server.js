@@ -55,24 +55,24 @@ app.use(flash()); // must come AFTER session
 // Populate res.locals for all views
 app.use(async (req, res, next) => {
   try {
-    res.locals.nav = await utilities.getNav(); // dynamic navigation
-    res.locals.currentPath = req.path;        // used by navigation.ejs
+    res.locals.nav = await utilities.getNav();                // Dynamic navigation
+    res.locals.currentPath = req.path;                        // Highlight current page
     res.locals.accountData = req.session?.accountData || null;
     res.locals.loggedin = !!res.locals.accountData;
-    res.locals.notice = req.flash("notice");  // flash messages
+    res.locals.notice = req.flash("notice");                 // Flash messages
     next();
   } catch (error) {
     next(error);
   }
 });
 
-// JWT check middleware (optional)
+// Optional JWT middleware (for APIs or restricted areas)
 app.use(utilities.checkJWTToken);
 
 // Built-in middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 
 /*******************************
  * View Engine and Layouts

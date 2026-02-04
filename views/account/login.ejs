@@ -10,16 +10,12 @@
 
 <h1>Login</h1>
 
-<!-- Flash notice messages -->
+<!-- Flash notice message -->
 <% if (notice && notice.length > 0) { %>
   <div class="flash-message">
-    <% notice.forEach(msg => { %>
-      <p><%= msg %></p>
-    <% }) %>
+    <p><%= notice[0] %></p> <!-- Only show the first message -->
   </div>
 <% } %>
-
-
 
 <div class="login-container">
   <form action="/account/login" method="POST" id="loginForm">
@@ -30,11 +26,11 @@
 
       <label for="account_password">Password:</label>
       <input type="password" name="account_password" id="account_password" required
-             pattern="^[A-Za-z]{6,}$"
-             title="Password must be at least 6 letters (A–Z or a–z only).">
+             minlength="4"
+             title="Password must be at least 4 characters.">
 
       <p class="password-info">
-        Password must be at least 6 letters (A–Z or a–z only).
+        Password must be at least 4 characters.
       </p>
 
       <button type="button" id="pswdBtn">Show Password</button>
@@ -48,8 +44,6 @@
   </p>
 </div>
 
-<!-- Link external JS file -->
 <script src="/js/login.js"></script>
-
 </body>
 </html>
