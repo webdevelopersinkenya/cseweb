@@ -1,11 +1,9 @@
-// controllers/accountController.js
-
 const accountModel = require("../models/account-model");
 const utilities = require("../utilities/");
 const bcrypt = require("bcryptjs");
 
 /* ****************************************
- * Deliver login view
+ * Deliver Login View
  **************************************** */
 async function buildLogin(req, res) {
   res.render("account/login", {
@@ -18,7 +16,7 @@ async function buildLogin(req, res) {
 }
 
 /* ****************************************
- * Deliver registration view
+ * Deliver Registration View
  **************************************** */
 async function buildRegister(req, res) {
   res.render("account/register", {
@@ -46,13 +44,7 @@ async function registerAccount(req, res) {
     }
 
     const hashedPassword = await bcrypt.hash(account_password, 10);
-
-    await accountModel.registerAccount(
-      account_firstname,
-      account_lastname,
-      account_email,
-      hashedPassword
-    );
+    await accountModel.registerAccount(account_firstname, account_lastname, account_email, hashedPassword);
 
     req.flash("notice", `Congratulations ${account_firstname}, you are now registered. Please log in.`);
     return res.redirect("/account/login");
@@ -69,27 +61,26 @@ async function registerAccount(req, res) {
  **************************************** */
 async function accountLogin(req, res) {
   const { account_email, account_password } = req.body;
-  const accountData = await accountModel.getAccountByEmail(account_email);
-
-  if (!accountData) {
-    req.flash("notice", "Invalid email or password.");
-    return res.redirect("/account/login");
-  }
 
   try {
+    const accountData = await accountModel.getAccountByEmail(account_email);
+
+    if (!accountData) {
+      req.flash("notice", "Invalid email or password.");
+      return res.redirect("/account/login");
+    }
+
     const passwordMatch = await bcrypt.compare(account_password, accountData.account_password);
     if (!passwordMatch) {
       req.flash("notice", "Invalid email or password.");
       return res.redirect("/account/login");
     }
 
-    // Remove password before storing in session
-    delete accountData.account_password;
+    delete accountData.account_password; // remove password before storing
     req.session.accountData = accountData;
 
     req.flash("notice", `Welcome back, ${accountData.account_firstname}!`);
     return res.redirect("/account/");
-
   } catch (error) {
     console.error("Login error:", error);
     req.flash("notice", "Login failed due to server error.");
@@ -110,89 +101,45 @@ async function buildAccountManagement(req, res) {
     notice: req.flash("notice"),
   });
 }
-/* ****************************************
- * Process Logout
- * Deletes session & token cookie, redirects to home
- **************************************** */
-async function accountLogout(req, res) {
-  // Flash message (optional, can show on home page)
-  req.flash("notice", "You have been logged out.");
-
-  // Destroy session
-  req.session.destroy((err) => {
-    if (err) {
-      console.error("Session destroy error:", err);
-      return res.redirect("/"); // fallback to home if error
-    }
-
-    // Clear token cookie
-    res.clearCookie("jwt");
-
-    // Redirect to home
-    return res.redirect("/");
-  });
-}
-
-module.exports = {
-  // ...existing exports
-  accountLogout,
-};
-
 
 /* ****************************************
- * Deliver account update view (GET)
+ * Deliver Account Update Form (GET)
  **************************************** */
-// Deliver the account update view
 async function buildUpdateAccount(req, res, next) {
   try {
-    const account_id = parseInt(req.params.account_id);
+    const account_id = req.session.accountData.account_id;
     const accountData = await accountModel.getAccountById(account_id);
-
-    // If account not found, create empty object
     const account = accountData || {};
 
     res.render("account/update-account", {
       title: "Update Account",
       errors: null,
-      account,                // <-- THIS is key
-      notice: req.flash("notice")
+      account,
+      notice: req.flash("notice"),
     });
   } catch (err) {
     next(err);
   }
 }
+
 /* ****************************************
- * Process Account Info Update (POST)
+ * Process Account Profile Update (POST)
  **************************************** */
 async function updateAccount(req, res, next) {
   try {
-    const { account_id, account_firstname, account_lastname, account_email } = req.body;
+    const account_id = req.session.accountData.account_id;
+    const { account_firstname, account_lastname, account_email } = req.body;
 
-    // Update account in DB
-    const result = await accountModel.updateAccount({
-      account_id,
-      account_firstname,
-      account_lastname,
-      account_email
-    });
+    if (!account_firstname || !account_lastname || !account_email) {
+      req.flash("notice", "All fields are required.");
+      return res.redirect("/account/update");
+    }
 
-    // Get the updated account data
-    const updatedAccount = await accountModel.getAccountById(account_id);
+    await accountModel.updateAccount({ account_id, account_firstname, account_lastname, account_email });
 
-    // Update session info
-    req.session.accountData = updatedAccount;
-
-    // Send success message
-    req.flash("success", "Account updated successfully.");
-
-    // Render view with updated data
-    res.render("account/update-account", {
-      title: "Update Account",
-      account: updatedAccount,
-      errors: null,
-      notice: req.flash("success")
-    });
-
+    req.session.accountData = await accountModel.getAccountById(account_id);
+    req.flash("notice", "Account updated successfully.");
+    return res.redirect("/account/update");
   } catch (err) {
     next(err);
   }
@@ -203,43 +150,53 @@ async function updateAccount(req, res, next) {
  **************************************** */
 async function updatePassword(req, res, next) {
   try {
-    const { account_id, account_password } = req.body;
+    const account_id = req.session.accountData.account_id;
+    const { account_password, account_password_confirm } = req.body;
 
-    // Hash the new password
+    if (!account_password || !account_password_confirm) {
+      req.flash("notice", "Both password fields are required.");
+      return res.redirect("/account/update");
+    }
+
+    if (account_password !== account_password_confirm) {
+      req.flash("notice", "Passwords do not match.");
+      return res.redirect("/account/update");
+    }
+
     const hashedPassword = await bcrypt.hash(account_password, 10);
+    await accountModel.updatePassword(account_id, hashedPassword);
 
-    // Update password in database
-    const result = await accountModel.updatePassword(account_id, hashedPassword);
-
-    // Fetch the updated account info
-    const updatedAccount = await accountModel.getAccountById(account_id);
-
-    // Update session
-    req.session.accountData = updatedAccount;
-
-    // Send success message
-    req.flash("success", "Password updated successfully.");
-
-    // Render account update page
-    res.render("account/update-account", {
-      title: "Update Account",
-      account: updatedAccount,
-      errors: null,
-      notice: req.flash("success")
-    });
-
+    req.session.accountData = await accountModel.getAccountById(account_id);
+    req.flash("notice", "Password updated successfully.");
+    return res.redirect("/account/update");
   } catch (err) {
     next(err);
   }
 }
+
+/* ****************************************
+ * Process Logout
+ **************************************** */
+async function accountLogout(req, res) {
+  req.flash("notice", "You have been logged out.");
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Session destroy error:", err);
+      return res.redirect("/");
+    }
+    res.clearCookie("jwt");
+    return res.redirect("/");
+  });
+}
+
 module.exports = {
   buildLogin,
   buildRegister,
   registerAccount,
   accountLogin,
   buildAccountManagement,
-  accountLogout,
   buildUpdateAccount,
   updateAccount,
-  updatePassword
+  updatePassword,
+  accountLogout,
 };

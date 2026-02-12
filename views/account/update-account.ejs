@@ -1,12 +1,14 @@
 <h1><%= title %></h1>
 
-<% if (notice) { %>
-  <p class="notice"><%= notice %></p>
+<!-- Flash Messages -->
+<% if (notice && notice.length > 0) { %>
+  <% notice.forEach(msg => { %>
+    <p class="notice"><%= msg %></p>
+  <% }) %>
 <% } %>
 
+<!-- Account Update Form -->
 <form action="/account/update" method="post" class="account-update-form">
-  <input type="hidden" name="account_id" value="<%= account.account_id || '' %>">
-
   <div class="form-group">
     <label for="account_firstname">First Name</label>
     <input type="text" name="account_firstname" id="account_firstname" value="<%= account.account_firstname || '' %>" required>
@@ -25,14 +27,21 @@
   <button type="submit">Update Account</button>
 </form>
 
+<hr>
+
+<!-- Password Update Form -->
 <h2>Change Password</h2>
 <form action="/account/updatePassword" method="post" class="password-update-form">
-  <input type="hidden" name="account_id" value="<%= account.account_id || '' %>">
-
   <div class="form-group">
     <label for="account_password">New Password</label>
-    <input type="text" name="account_password" id="account_password" required>
+    <input type="password" name="account_password" id="account_password" class="form-group" required autocomplete="new-password">
+  </div>
+
+  <div class="form-group">
+    <label for="account_password_confirm">Confirm New Password</label>
+    <input type="password" name="account_password_confirm" id="account_password_confirm" class="form-group" required autocomplete="new-password">
   </div>
 
   <button type="submit">Update Password</button>
 </form>
+

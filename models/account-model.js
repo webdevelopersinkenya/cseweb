@@ -80,12 +80,13 @@ async function updateAccount({ account_id, account_firstname, account_lastname, 
       UPDATE account
       SET account_firstname = $1,
           account_lastname = $2,
-          account_email = $3
+          account_email = $3,
+          updated_at = CURRENT_TIMESTAMP
       WHERE account_id = $4
       RETURNING *;
     `;
     const result = await pool.query(sql, [account_firstname, account_lastname, account_email, account_id]);
-    return result.rows[0]; // return the updated account
+    return result.rows[0];
   } catch (error) {
     console.error("updateAccount error:", error);
     throw error;
@@ -99,7 +100,8 @@ async function updatePassword(account_id, hashedPassword) {
   try {
     const sql = `
       UPDATE account
-      SET account_password = $1
+      SET account_password = $1,
+          updated_at = CURRENT_TIMESTAMP
       WHERE account_id = $2
       RETURNING *;
     `;
