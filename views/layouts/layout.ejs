@@ -11,7 +11,7 @@
       const isAuthPage = (title === 'Login' || title === 'Register'); 
     %>
 
-    <!-- Always show header and navigation -->
+
     <%- include('../partials/header') %>
     <%- include('../partials/navigation') %>
 
@@ -19,7 +19,6 @@
       <%- body %>
     </main>
 
-    <!-- Only show footer if not auth page -->
     <% if (!isAuthPage) { %>
       <%- include('../partials/footer') %>
     <% } %>
